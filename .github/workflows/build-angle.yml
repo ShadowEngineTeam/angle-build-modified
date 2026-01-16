@@ -1,0 +1,23 @@
+name: Build-Angle
+on: workflow_dispatch
+jobs:
+  Windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: 4.3.7
+
+      - name: Build Angle
+        run: haxe build.hxml
+
+      # - name: Upload Artifact
+      #   uses: actions/upload-artifact@main
+      #   with:
+      #     name: Windows
+      #     path: LuaJIT/build
+      #     if-no-files-found: warn
