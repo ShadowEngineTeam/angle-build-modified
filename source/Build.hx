@@ -74,7 +74,6 @@ class Build
 			targetConfig.args.push('chrome_pgo_phase=0');
 			targetConfig.args.push('clang_use_chrome_plugins=false');
 			targetConfig.args.push('dcheck_always_on=false');
-			targetConfig.args.push('is_cfi=true');
 			targetConfig.args.push('is_clang=true');
 			targetConfig.args.push('is_debug=false');
 			targetConfig.args.push('is_official_build=true');

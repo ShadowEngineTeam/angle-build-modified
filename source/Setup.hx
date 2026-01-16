@@ -14,11 +14,7 @@ class Setup
 	public static function run():Void
 	{
 		if (Sys.systemName() == 'Windows')
-		{
 			Sys.putEnv('DEPOT_TOOLS_WIN_TOOLCHAIN', '0');
-
-			Sys.putEnv('vs2022_install', 'C:\\Program Files\\Microsoft Visual Studio\\2022\\BuildTools');
-		}
 
 		if (!ProcessUtil.commandExists('git'))
 		{
