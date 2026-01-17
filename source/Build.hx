@@ -58,12 +58,24 @@ class Build
 				switch (buildPlatform)
 				{
 					case 'windows':
+						FileUtil.createDirectory('build/${targetConfig.getExportName()}/include');
+
 						FileUtil.copyDirectory('angle/include', 'build/${targetConfig.getExportName()}/include');
 
 						for (file in FileSystem.readDirectory('angle/${targetConfig.getExportPath()}'))
 						{
-							if (Path.extension(file) == 'lib' || Path.extension(file) == 'dll')
-								File.copy('angle/${targetConfig.getExportPath()}/$file', 'build/${targetConfig.getExportName()}/$file');
+							if (Path.extension(file) == 'lib')
+							{
+								FileUtil.createDirectory('build/${targetConfig.getExportName()}/lib');
+
+								File.copy('angle/${targetConfig.getExportPath()}/$file', 'build/${targetConfig.getExportName()}/lib/$file');
+							}
+							else if (Path.extension(file) == 'dll')
+							{
+								FileUtil.createDirectory('build/${targetConfig.getExportName()}/bin');
+
+								File.copy('angle/${targetConfig.getExportPath()}/$file', 'build/${targetConfig.getExportName()}/bin/$file');
+							}
 						}
 				}
 			}
@@ -95,17 +107,17 @@ class Build
 					targetConfigX64.args = targetConfigX64.args.concat(renderingBackends);
 					targetConfigs.push(targetConfigX64);
 
-					final targetConfigARM64:Config = getDefaultTargetPlatform();
-					targetConfigARM64.os = 'win';
-					targetConfigARM64.cpu = 'arm64';
-					targetConfigARM64.args = targetConfigARM64.args.concat(renderingBackends);
-					targetConfigs.push(targetConfigARM64);
+					// final targetConfigARM64:Config = getDefaultTargetPlatform();
+					// targetConfigARM64.os = 'win';
+					// targetConfigARM64.cpu = 'arm64';
+					// targetConfigARM64.args = targetConfigARM64.args.concat(renderingBackends);
+					// targetConfigs.push(targetConfigARM64);
 
-					final targetConfigX86:Config = getDefaultTargetPlatform();
-					targetConfigX86.os = 'win';
-					targetConfigX86.cpu = 'x86';
-					targetConfigX86.args = targetConfigX86.args.concat(renderingBackends);
-					targetConfigs.push(targetConfigX86);
+					// final targetConfigX86:Config = getDefaultTargetPlatform();
+					// targetConfigX86.os = 'win';
+					// targetConfigX86.cpu = 'x86';
+					// targetConfigX86.args = targetConfigX86.args.concat(renderingBackends);
+					// targetConfigs.push(targetConfigX86);
 			}
 		}
 
