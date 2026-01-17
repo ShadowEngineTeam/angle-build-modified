@@ -115,6 +115,7 @@ class Build
 	public static function addAngleBuildOptimization(targetConfig:Config):Void
 	{
 		targetConfig.args.push('build_with_chromium=false');
+		targetConfig.args.push('chrome_pgo_phase=0');
 		targetConfig.args.push('dcheck_always_on=false');
 		targetConfig.args.push('is_debug=false');
 		targetConfig.args.push('is_official_build=true');
