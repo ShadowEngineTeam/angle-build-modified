@@ -110,7 +110,7 @@ class Build
 					renderingBackends.push('angle_enable_vulkan=true');
 					renderingBackends.push('angle_enable_wgpu=false');
 
-					final targetConfigX64:Config = gtDefaultTargetPlatform();
+					final targetConfigX64:Config = getDefaultTargetPlatform();
 					targetConfigX64.os = 'win';
 					targetConfigX64.cpu = 'x64';
 					targetConfigX64.args = targetConfigX64.args.concat(renderingBackends);
