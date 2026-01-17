@@ -7,7 +7,6 @@ import sys.io.File;
 
 import util.ANSIUtil;
 import util.FileUtil;
-import util.ProcessUtil;
 
 class Setup
 {
@@ -73,7 +72,7 @@ class Setup
 	static function gitClone(name:String, url:String):Void
 	{
 		if (!FileSystem.exists(name))
-			Sys.command('git', ['clone', '-q', '--depth', '1', url]);
+			Sys.command('git', ['clone', '--depth', '1', url]);
 	}
 
 	@:noCompletion

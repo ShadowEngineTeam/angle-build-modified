@@ -54,8 +54,13 @@ class Build
 
 			for (headersFolder in ANGLE_HEADERS_FOLDERS)
 			{
-				FileUtil.createDirectory('$absBuildDir/$buildPlatform/include/$headersFolder');
-				FileUtil.copyDirectory('include/$headersFolder', '$absBuildDir/$buildPlatform/include/$headersFolder');
+				try
+				{
+					FileUtil.createDirectory('$absBuildDir/$buildPlatform/include/$headersFolder');
+					FileUtil.copyDirectory('include/$headersFolder', '$absBuildDir/$buildPlatform/include/$headersFolder');
+				}
+				catch (e:Dynamic)
+					Sys.println(ANSIUtil.apply('Failed to copy "$headersFolder" because: $e.', [ANSICode.Bold, ANSICode.Yellow]));
 			}
 
 			for (targetConfig in getBuildConfig())
@@ -191,7 +196,6 @@ class Build
 		targetConfig.args.push('is_clang=true');
 		targetConfig.args.push('clang_use_chrome_plugins=false');
 		targetConfig.args.push('use_custom_libcxx=false');
-		targetConfig.args.push('_use_copy_compiler_dll=false');
 	}
 
 	public static function addAngleSetup(targetConfig:Config):Void
