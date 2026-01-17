@@ -13,6 +13,9 @@ using StringTools;
 class Build
 {
 	@:noCompletion
+	static final ANGLE_HEADERS_FOLDERS:Array<String> = ['EGL', 'GLES2', 'GLES3', 'KHR'];
+
+	@:noCompletion
 	static final ANGLE_LIBS:Array<String> = ['libGLESv2', 'libEGL'];
 
 	@:noCompletion
@@ -49,9 +52,11 @@ class Build
 
 			final absBuildDir:String = Path.normalize(FileSystem.absolutePath('../build'));
 
-			FileUtil.createDirectory('$absBuildDir/$buildPlatform/include');
-
-			FileUtil.copyDirectory('include', '$absBuildDir/$buildPlatform/include');
+			for (headersFolder in ANGLE_HEADERS_FOLDERS)
+			{
+				FileUtil.createDirectory('$absBuildDir/$buildPlatform/include/$headersFolder');
+				FileUtil.copyDirectory('include/$headersFolder', '$absBuildDir/$buildPlatform/include/$headersFolder');
+			}
 
 			for (targetConfig in getBuildConfig())
 			{
