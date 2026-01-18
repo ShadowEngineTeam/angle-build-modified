@@ -170,7 +170,7 @@ class Build
 							for (framework in libEnviromentLibs)
 								frameworksToMerge.push('$framework/$libName');
 
-							if (Sys.command('lipo', ['-create', '-output', universalLibDestination].concat(libEnviromentLibs)) == 0)
+							if (Sys.command('lipo', ['-create', '-output', universalLibDestination].concat(frameworksToMerge)) == 0)
 								Sys.command('install_name_tool', ['-id', '@rpath/$libName.dylib', universalLibDestination]);
 							else
 								Sys.println(ANSIUtil.apply('Failed to create universal lib for "$libName".', [ANSICode.Bold, ANSICode.Yellow]));
