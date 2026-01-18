@@ -39,8 +39,7 @@ class Build
 			{
 				Sys.println(ANSIUtil.apply('Creating mock chrome VERSION file...', [ANSICode.Bold, ANSICode.Blue]));
 
-				if (!FileSystem.exists('chrome'))
-					FileUtil.createDirectory('chrome');
+				FileUtil.createDirectory('chrome');
 
 				final chromeFileContent:Array<String> = [];
 				chromeFileContent.push('MAJOR=1');
@@ -53,15 +52,7 @@ class Build
 			final absBuildDir:String = Path.normalize(FileSystem.absolutePath('../build'));
 
 			for (headersFolder in ANGLE_HEADERS_FOLDERS)
-			{
-				try
-				{
-					FileUtil.createDirectory('$absBuildDir/$buildPlatform/include/$headersFolder');
-					FileUtil.copyDirectory('include/$headersFolder', '$absBuildDir/$buildPlatform/include/$headersFolder');
-				}
-				catch (e:Dynamic)
-					Sys.println(ANSIUtil.apply('Failed to copy "$headersFolder" because: $e.', [ANSICode.Bold, ANSICode.Yellow]));
-			}
+				FileUtil.copyDirectory('include/$headersFolder', '$absBuildDir/$buildPlatform/include/$headersFolder');
 
 			for (targetConfig in getBuildConfig())
 			{
@@ -85,42 +76,22 @@ class Build
 						case 'windows':
 							for (file in FileSystem.readDirectory(targetConfig.getExportPath()))
 							{
-								for (lib in ANGLE_LIBS)
-								{
-									if (file.startsWith(lib))
-									{
-										if (Path.extension(file) == 'lib')
-										{
-											FileUtil.createDirectory('$absBuildDir/lib/${targetConfig.cpu}');
-
-											File.copy('${targetConfig.getExportPath()}/$file', '$absBuildDir/lib/${targetConfig.cpu}/$file');
-										}
-										else if (Path.extension(file) == 'dll')
-										{
-											FileUtil.createDirectory('$absBuildDir/bin/${targetConfig.cpu}');
-
-											File.copy('${targetConfig.getExportPath()}/$file', '$absBuildDir/bin/${targetConfig.cpu}/$file');
-										}
-									}
-								}
+								if (Path.extension(file) == 'lib')
+									FileUtil.copyFile('${targetConfig.getExportPath()}/$file', '$absBuildDir/lib/${targetConfig.cpu}/$file');
+								else if (Path.extension(file) == 'dll')
+									FileUtil.copyFile('${targetConfig.getExportPath()}/$file', '$absBuildDir/bin/${targetConfig.cpu}/$file');
 							}
 						case 'linux':
 							for (file in FileSystem.readDirectory(targetConfig.getExportPath()))
 							{
-								for (lib in ANGLE_LIBS)
-								{
-									if (file.startsWith(lib) && Path.extension(file) == 'so')
-									{
-										try
-										{
-											FileUtil.createDirectory('$absBuildDir/lib/${targetConfig.cpu}');
-
-											File.copy('${targetConfig.getExportPath()}/$file', '$absBuildDir/lib/${targetConfig.cpu}/$file');
-										}
-										catch (e:Dynamic)
-											Sys.println(ANSIUtil.apply('Failed to copy "$file" because: $e.', [ANSICode.Bold, ANSICode.Yellow]));
-									}
-								}
+								if (Path.extension(file) == 'so')
+									FileUtil.copyFile('${targetConfig.getExportPath()}/$file', '$absBuildDir/lib/${targetConfig.cpu}/$file');
+							}
+						case 'macos':
+							for (file in FileSystem.readDirectory(targetConfig.getExportPath()))
+							{
+								if (Path.extension(file) == 'dylib')
+									FileUtil.copyFile('${targetConfig.getExportPath()}/$file', '$absBuildDir/lib/${targetConfig.cpu}/$file');
 							}
 					}
 				}
@@ -192,6 +163,29 @@ class Build
 						targetConfigARM64.args = targetConfigARM64.args.concat(renderingBackends);
 						targetConfigs.push(targetConfigARM64);
 					}
+				case 'macos':
+					final renderingBackends:Array<String> = [];
+
+					renderingBackends.push('angle_enable_d3d9=false'); // Disable D3D9 backend
+					renderingBackends.push('angle_enable_d3d11=false'); // Disable D3D11 backend
+					renderingBackends.push('angle_enable_gl=false'); // Disable OpenGL backend
+					renderingBackends.push('angle_enable_metal=true'); // Enable Metal backend
+					renderingBackends.push('angle_enable_null=false'); // Disable Null backend
+					renderingBackends.push('angle_enable_wgpu=false'); // Disable WebGPU backend
+					renderingBackends.push('angle_enable_vulkan=false'); // Disable Vulkan backend
+					renderingBackends.push('angle_enable_swiftshader=false'); // Disable SwiftShader
+
+					final targetConfigARM64:Config = getDefaultTargetPlatform();
+					targetConfigARM64.os = 'mac';
+					targetConfigARM64.cpu = 'arm64';
+					targetConfigARM64.args = targetConfigARM64.args.concat(renderingBackends);
+					targetConfigs.push(targetConfigARM64);
+
+					final targetConfigX64:Config = getDefaultTargetPlatform();
+					targetConfigX64.os = 'mac';
+					targetConfigX64.cpu = 'x64';
+					targetConfigX64.args = targetConfigX64.args.concat(renderingBackends);
+					targetConfigs.push(targetConfigX64);
 			}
 		}
 

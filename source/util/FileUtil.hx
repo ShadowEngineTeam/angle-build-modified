@@ -61,6 +61,7 @@ class FileUtil
 
 	/**
 	 * Creates a directory and any parent directories at the specified path.
+	 * 
 	 * The path is normalized and trailing slashes are removed before creating directories.
 	 * 
 	 * @param path The path where the directory will be created.
@@ -95,7 +96,7 @@ class FileUtil
 	 * @param src The path to the source directory.
 	 * @param dest The path to the destination directory.
 	 */
-	public static function copyDirectory(src:String, dest:String)
+	public static function copyDirectory(src:String, dest:String):Void
 	{
 		// Create destination directory if it does not exist
 		if (!FileSystem.exists(dest))
@@ -110,7 +111,23 @@ class FileUtil
 			if (FileSystem.isDirectory(srcPath))
 				copyDirectory(srcPath, destPath);
 			else
-				File.copy(srcPath, destPath);
+				copyFile(srcPath, destPath);
 		}
+	}
+
+	/**
+	 * Copies a file from the source path to the destination path.
+	 * 
+	 * @param src The path to the source file.
+	 * @param dest The path to the destination file.
+	 */
+	public static function copyFile(src:String, dest:String):Void
+	{
+		final directory:String = Path.directory(dest);
+
+		if (!FileSystem.exists(directory))
+			createDirectory(directory);
+
+		File.saveContent(dest, File.getContent(src));
 	}
 }
