@@ -21,10 +21,16 @@ class Build
 	@:noCompletion
 	static var buildPlatform:Null<String>;
 
+	@:noCompletion
+	static var buildConfigs:Array<Config>;
+
 	public static function run():Void
 	{
 		// Get the defined build platform.
 		buildPlatform = Platform.getBuildPlatform();
+
+		// Get the defined build configs.
+		buildConfigs = Build.getBuildConfig();
 
 		// Create the build dir.
 		FileUtil.createDirectory('build');
@@ -49,12 +55,7 @@ class Build
 				File.saveContent('chrome/VERSION', chromeFileContent.join('\n'));
 			}
 
-			final absBuildDir:String = FileSystem.fullPath('../build');
-
-			for (headersFolder in ANGLE_HEADERS_FOLDERS)
-				FileUtil.copyDirectory('include/$headersFolder', '$absBuildDir/$buildPlatform/include/$headersFolder');
-
-			for (targetConfig in getBuildConfig())
+			for (targetConfig in buildConfigs)
 			{
 				FileUtil.createDirectory(targetConfig.getExportPath());
 
@@ -69,39 +70,39 @@ class Build
 					Sys.exit(1);
 				}
 
-				if (Sys.command('autoninja', ['-C', targetConfig.getExportPath()].concat(ANGLE_LIBS)) == 0)
-				{
-					switch (buildPlatform)
-					{
-						case 'windows':
-							for (file in FileSystem.readDirectory(targetConfig.getExportPath()))
-							{
-								if (Path.extension(file) == 'lib')
-									FileUtil.copyFile('${targetConfig.getExportPath()}/$file', '$absBuildDir/lib/${targetConfig.cpu}/$file');
-								else if (Path.extension(file) == 'dll')
-									FileUtil.copyFile('${targetConfig.getExportPath()}/$file', '$absBuildDir/bin/${targetConfig.cpu}/$file');
-							}
-						case 'linux':
-							for (file in FileSystem.readDirectory(targetConfig.getExportPath()))
-							{
-								if (Path.extension(file) == 'so')
-									FileUtil.copyFile('${targetConfig.getExportPath()}/$file', '$absBuildDir/lib/${targetConfig.cpu}/$file');
-							}
-						case 'macos':
-							for (file in FileSystem.readDirectory(targetConfig.getExportPath()))
-							{
-								if (Path.extension(file) == 'dylib')
-									FileUtil.copyFile('${targetConfig.getExportPath()}/$file', '$absBuildDir/lib/${targetConfig.cpu}/$file');
-							}
-					}
-				}
-				else
+				if (Sys.command('autoninja', ['-C', targetConfig.getExportPath()].concat(ANGLE_LIBS)) != 0)
 				{
 					Sys.println(ANSIUtil.apply('Failed to build ${targetConfig.os}-${targetConfig.cpu}.', [ANSICode.Bold, ANSICode.Red]));
 					Sys.exit(1);
 				}
 			}
 		});
+
+		// Copy angle's headers.
+		for (headersFolder in ANGLE_HEADERS_FOLDERS)
+			FileUtil.copyDirectory('angle/include/$headersFolder', 'build/$buildPlatform/include/$headersFolder');
+
+		// Copy angle's libs.
+		for (buildConfig in buildConfigs)
+		{
+			for (file in FileSystem.readDirectory('angle/${buildConfig.getExportPath()}'))
+			{
+				switch (buildPlatform)
+				{
+					case 'windows':
+						if (Path.extension(file) == 'lib')
+							FileUtil.copyFile('angle/${buildConfig.getExportPath()}/$file', 'build/lib/${buildConfig.cpu}/$file');
+						else if (Path.extension(file) == 'dll')
+							FileUtil.copyFile('angle/${buildConfig.getExportPath()}/$file', 'build/bin/${buildConfig.cpu}/$file');
+					case 'linux':
+						if (Path.extension(file) == 'so')
+							FileUtil.copyFile('angle/${buildConfig.getExportPath()}/$file', 'build/lib/${buildConfig.cpu}/$file');
+					case 'macos':
+						if (Path.extension(file) == 'dylib')
+							FileUtil.copyFile('angle/${buildConfig.getExportPath()}/$file', 'build/lib/${buildConfig.cpu}/$file');
+				}
+			}
+		}
 	}
 
 	public static function getBuildConfig():Array<Config>
