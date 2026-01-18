@@ -228,8 +228,8 @@ class Build
 						targetConfigSimulatorARM64.os = 'ios';
 						targetConfigSimulatorARM64.cpu = 'arm64';
 						targetConfigSimulatorARM64.environment = 'simulator';
-						targetConfigSimulatorARM64.args = targetConfigDeviceARM64.args.concat(renderingBackends);
-						targetConfigs.push(targetConfigDeviceARM64);
+						targetConfigSimulatorARM64.args = targetConfigSimulatorARM64.args.concat(renderingBackends);
+						targetConfigs.push(targetConfigSimulatorARM64);
 
 						final targetConfigSimulatorX64:Config = getDefaultTargetPlatform();
 						targetConfigSimulatorX64.os = 'ios';
