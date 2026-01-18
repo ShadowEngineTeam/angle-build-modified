@@ -87,6 +87,8 @@ class Build
 		{
 			for (file in FileSystem.readDirectory('angle/${buildConfig.getExportPath()}'))
 			{
+				trace(Path.join(['angle/${buildConfig.getExportPath()}', file]));
+
 				switch (buildPlatform)
 				{
 					case 'windows':

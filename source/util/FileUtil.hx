@@ -128,8 +128,6 @@ class FileUtil
 		if (!FileSystem.exists(directory))
 			createDirectory(directory);
 
-		final content:String = File.getContent(src);
-
-		File.saveContent(dest, content);
+		File.copy(src, dest);
 	}
 }
