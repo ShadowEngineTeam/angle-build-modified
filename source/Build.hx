@@ -145,6 +145,12 @@ class Build
 						targetConfigARM64.cpu = 'arm64';
 						targetConfigARM64.args = targetConfigARM64.args.concat(renderingBackends);
 						targetConfigs.push(targetConfigARM64);
+
+						final targetConfigX86:Config = getDefaultTargetPlatform();
+						targetConfigX86.os = 'win';
+						targetConfigX86.cpu = 'x86';
+						targetConfigX86.args = targetConfigX86.args.concat(renderingBackends);
+						targetConfigs.push(targetConfigX86);
 					}
 					else
 					{
