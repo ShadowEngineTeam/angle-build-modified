@@ -255,11 +255,23 @@ class Build
 					}
 					else
 					{
+						final targetConfigX86:Config = getDefaultTargetPlatform();
+						targetConfigX86.os = 'linux';
+						targetConfigX86.cpu = 'x86';
+						targetConfigX86.args = targetConfigX86.args.concat(renderingBackends);
+						targetConfigs.push(targetConfigX86);
+
 						final targetConfigX64:Config = getDefaultTargetPlatform();
 						targetConfigX64.os = 'linux';
 						targetConfigX64.cpu = 'x64';
 						targetConfigX64.args = targetConfigX64.args.concat(renderingBackends);
 						targetConfigs.push(targetConfigX64);
+
+						final targetConfigARM:Config = getDefaultTargetPlatform();
+						targetConfigARM.os = 'linux';
+						targetConfigARM.cpu = 'arm';
+						targetConfigARM.args = targetConfigARM.args.concat(renderingBackends);
+						targetConfigs.push(targetConfigARM);
 
 						final targetConfigARM64:Config = getDefaultTargetPlatform();
 						targetConfigARM64.os = 'linux';
