@@ -412,8 +412,16 @@ class Build
 
 		if (buildPlatform == 'android')
 		{
-			targetConfig.args.push('android_sdk_root=getenv("ANDROID_HOME")');
-			targetConfig.args.push('android_ndk_root=getenv("ANDROID_NDK_HOME")');
+			final androidSdk:String = Sys.getEnv("ANDROID_HOME");
+			final androidNdk:String = Sys.getEnv("ANDROID_NDK_HOME");
+
+			if (androidSdk == null || androidNdk == null) {
+			    Sys.println(ANSIUtil.apply("ANDROID_HOME or ANDROID_NDK_HOME is not set.", [ANSICode.Bold, ANSICode.Red]));
+			    Sys.exit(1);
+			}
+
+			targetConfig.args.push('android_sdk_root="$androidSdk"');
+			targetConfig.args.push('android_ndk_root="$androidNdk"');
 			targetConfig.args.push('android_use_ndk=true');
 		}
 	}
