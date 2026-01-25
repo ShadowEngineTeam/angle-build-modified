@@ -67,6 +67,9 @@ class Build
 				if (buildPlatform == 'linux' && targetConfig.cpu == 'arm64')
 					Sys.command('python3', ['build/linux/sysroot_scripts/install-sysroot.py', '--arch=arm64']);
 
+				if (buildPlatform == 'linux' && targetConfig.cpu == 'arm')
+					Sys.command('python3', ['build/linux/sysroot_scripts/install-sysroot.py', '--arch=arm']);
+
 				if (Sys.command('gn', ['gen', targetConfig.getExportPath()]) != 0)
 				{
 					Sys.println(ANSIUtil.apply('Failed to build ${targetConfig.os}-${targetConfig.cpu}.', [ANSICode.Bold, ANSICode.Red]));
