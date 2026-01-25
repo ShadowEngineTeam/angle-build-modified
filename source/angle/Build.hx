@@ -374,8 +374,13 @@ class Build
 
 		targetConfig.args.push('is_debug=false');
 		targetConfig.args.push('is_official_build=true');
-		targetConfig.args.push('strip_debug_info=true');
-		targetConfig.args.push('symbol_level=0');
+		if (buildPlatform != 'android') {
+		    targetConfig.args.push('strip_debug_info=true');
+		    targetConfig.args.push('symbol_level=0');
+		} else {
+		    targetConfig.args.push('strip_debug_info=false');
+		    targetConfig.args.push('symbol_level=1');
+		}
 	}
 
 	@:noCompletion
