@@ -374,10 +374,13 @@ class Build
 
 		targetConfig.args.push('is_debug=false');
 		targetConfig.args.push('is_official_build=true');
-		if (buildPlatform != 'android') {
+		if (buildPlatform != 'android')
+		{
 		    targetConfig.args.push('strip_debug_info=true');
 		    targetConfig.args.push('symbol_level=0');
-		} else {
+		}
+		else
+		{
 		    targetConfig.args.push('strip_debug_info=false');
 		    targetConfig.args.push('symbol_level=1');
 		}
@@ -406,6 +409,14 @@ class Build
 		targetConfig.args.push('angle_has_histograms=false');
 		targetConfig.args.push('angle_has_rapidjson=false');
 		targetConfig.args.push('angle_standalone=true');
+
+		if (buildPlatform == 'android')
+		{
+			targetConfig.args.push('android_sdk_root=getenv("ANDROID_HOME")');
+			targetConfig.args.push('android_ndk_root=getenv("ANDROID_NDK_HOME")');
+			targetConfig.args.push('android_sdk_version=0');
+			targetConfig.args.push('android_ndk_version=0');
+		}
 	}
 
 	@:noCompletion
