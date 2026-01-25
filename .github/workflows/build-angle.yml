@@ -83,7 +83,7 @@ jobs:
           haxe-version: 4.3.7
 
       - name: Build Angle
-        run: haxe build.hxml --define buildPlatform=linux
+        run: haxe build.hxml --define buildPlatform=android
         env:
           ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
 
