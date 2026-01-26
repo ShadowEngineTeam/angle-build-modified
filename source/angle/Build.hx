@@ -237,7 +237,6 @@ class Build
 					renderingBackends.push('angle_enable_null=false'); // Disable Null backend
 					renderingBackends.push('angle_enable_wgpu=false'); // Disable WebGPU backend
 					renderingBackends.push('angle_enable_swiftshader=false'); // Disable SwiftShader
-
 					renderingBackends.push('angle_enable_vulkan=true'); // Enable Vulkan backend
 					renderingBackends.push('angle_enable_vulkan_api_dump_layer=false'); // Disable Vulkan API dump layer
 					renderingBackends.push('angle_enable_vulkan_validation_layers=false'); // Disable Vulkan validation layers
@@ -428,9 +427,8 @@ class Build
 			    Sys.exit(1);
 			}
 
-			targetConfig.args.push('android_sdk_root="$androidSdk"');
-			targetConfig.args.push('android_ndk_root="$androidNdk"');
-			targetConfig.args.push('android_use_ndk=true');
+			targetConfig.args.push('android_sdk_root=$androidSdk');
+			targetConfig.args.push('android_ndk_root=$androidNdk');
 		}
 	}
 
