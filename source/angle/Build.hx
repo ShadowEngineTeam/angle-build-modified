@@ -97,12 +97,21 @@ class Build
 		// Copy angle's libs.
 		for (buildConfig in buildConfigs)
 		{
-			for (lib in ANGLE_LIBS)
+			final libsToCopy:Array<String> = ANGLE_LIBS;
+
+			if (buildPlatform == 'windows')
+				libsToCopy.push('d3dcompiler_47');
+
+			for (lib in libsToCopy)
 			{
 				switch (buildPlatform)
 				{
 					case 'windows':
-						FileUtil.copyFile('angle/${buildConfig.getExportPath()}/$lib.dll.lib', 'build/$buildPlatform/lib/${buildConfig.cpu}/$lib.dll.lib');
+						final dllLibFile:String = 'angle/${buildConfig.getExportPath()}/$lib.dll.lib';
+
+						if (FileSystem.exists(dllLibFile))
+							FileUtil.copyFile(dllLibFile, 'build/$buildPlatform/lib/${buildConfig.cpu}/$lib.dll.lib');
+
 						FileUtil.copyFile('angle/${buildConfig.getExportPath()}/$lib.dll', 'build/$buildPlatform/bin/${buildConfig.cpu}/$lib.dll');
 					case 'linux':
 						FileUtil.copyFile('angle/${buildConfig.getExportPath()}/$lib.so', 'build/$buildPlatform/lib/${buildConfig.cpu}/$lib.so');
@@ -223,12 +232,21 @@ class Build
 					final renderingBackends:Array<String> = [];
 
 					renderingBackends.push('angle_enable_d3d9=false'); // Disable D3D9 backend
-					renderingBackends.push('angle_enable_d3d11=false'); // Disable D3D11 backend
-					renderingBackends.push('angle_enable_gl=true'); // Enable OpenGL backend
+					renderingBackends.push('angle_enable_gl=false'); // Disable OpenGL backend
 					renderingBackends.push('angle_enable_metal=false'); // Disable Metal backend
 					renderingBackends.push('angle_enable_null=false'); // Disable Null backend
 					renderingBackends.push('angle_enable_wgpu=false'); // Disable WebGPU backend
 					renderingBackends.push('angle_enable_swiftshader=false'); // Disable SwiftShader
+
+					if (buildPlatform == 'windows')
+					{
+						renderingBackends.push('angle_enable_d3d11=true'); // Enable D3D11 backend
+					}
+					else
+					{
+						renderingBackends.push('angle_enable_d3d11=false'); // Disable D3D11 backend
+					}
+
 					renderingBackends.push('angle_enable_vulkan=true'); // Enable Vulkan backend
 					renderingBackends.push('angle_enable_vulkan_api_dump_layer=false'); // Disable Vulkan API dump layer
 					renderingBackends.push('angle_enable_vulkan_validation_layers=false'); // Disable Vulkan validation layers
@@ -407,6 +425,7 @@ class Build
 		targetConfig.args.push('angle_has_frame_capture=false');
 		targetConfig.args.push('angle_has_histograms=false');
 		targetConfig.args.push('angle_has_rapidjson=false');
+		targetConfig.args.push('angle_has_astc_encoder=false');
 		targetConfig.args.push('angle_standalone=true');
 
 		if (buildPlatform == 'android')
