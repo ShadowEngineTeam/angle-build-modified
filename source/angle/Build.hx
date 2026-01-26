@@ -404,7 +404,7 @@ class Build
 		if (buildPlatform == 'ios')
 			targetConfig.args.push('ios_enable_code_signing=false');
 		else if (buildPlatform == 'android')
-			targetConfig.args.push('android_min_sdk_version=24');
+			targetConfig.args.push('android_ndk_api_level=29');
 	}
 
 	@:noCompletion
