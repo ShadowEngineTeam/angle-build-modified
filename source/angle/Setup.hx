@@ -62,6 +62,10 @@ class Setup
 
 			// Syncing ANGLE dependencies with gclient...
 			Sys.command('gclient', ['sync', '--no-history', '--shallow', '--jobs', '8']);
+			
+			var check = Sys.command('git', ['apply', '--check', '../../patches/0001-bend-OpenGL-and-Vulkan-rules-for-MAX_TEXTURE_SIZE.patch']);
+			if (check == 0)
+				Sys.command('git', ['apply', '../../patches/0001-bend-OpenGL-and-Vulkan-rules-for-MAX_TEXTURE_SIZE.patch']);
 		});
 
 		// Print

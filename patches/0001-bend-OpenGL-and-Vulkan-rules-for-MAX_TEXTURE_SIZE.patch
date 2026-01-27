@@ -1,0 +1,458 @@
+From 8d411886253ec04fe51c28a994e5baefd986b1dd Mon Sep 17 00:00:00 2001
+From: Homura <egzozu.be.bas@gmail.com>
+Date: Tue, 27 Jan 2026 21:31:41 +0300
+Subject: [PATCH] bend OpenGL and Vulkan rules for `MAX_TEXTURE_SIZE`.
+
+---
+ src/libANGLE/ErrorStrings.h                   |  1 -
+ src/libANGLE/renderer/vulkan/CLDeviceVk.cpp   |  4 +-
+ .../renderer/vulkan/vk_caps_utils.cpp         | 16 ++--
+ src/libANGLE/validationES.cpp                 | 33 +------
+ src/libANGLE/validationES2.cpp                | 47 ----------
+ src/libANGLE/validationES3.cpp                | 88 +------------------
+ src/libANGLE/validationESEXT.cpp              | 11 +--
+ 7 files changed, 12 insertions(+), 188 deletions(-)
+
+diff --git a/src/libANGLE/ErrorStrings.h b/src/libANGLE/ErrorStrings.h
+index 15f336c..33709fe 100644
+--- a/src/libANGLE/ErrorStrings.h
++++ b/src/libANGLE/ErrorStrings.h
+@@ -576,7 +576,6 @@ inline constexpr const char *kRelativeOffsetTooLarge = "relativeOffset cannot be
+ inline constexpr const char *kRenderableInternalFormat = "SizedInternalformat must be color-renderable, depth-renderable, or stencil-renderable.";
+ inline constexpr const char *kRenderbufferNotBound = "A renderbuffer must be bound.";
+ inline constexpr const char *kResourceMaxRenderbufferSize = "Desired resource size is greater than max renderbuffer size.";
+-inline constexpr const char *kResourceMaxTextureSize = "Desired resource size is greater than max texture size.";
+ inline constexpr const char *kRobustResourceInitializationExtensionRequired = "EGL_ANGLE_robust_resource_initialization not enabled.";
+ inline constexpr const char *kSamplerFormatMismatch = "Mismatch between texture format and sampler type (signed/unsigned/float/shadow).";
+ inline constexpr const char *kSamplesOutOfRange = "Samples value is negative or greater than maximum supported value for the format.";
+diff --git a/src/libANGLE/renderer/vulkan/CLDeviceVk.cpp b/src/libANGLE/renderer/vulkan/CLDeviceVk.cpp
+index b395697..37f1953 100644
+--- a/src/libANGLE/renderer/vulkan/CLDeviceVk.cpp
++++ b/src/libANGLE/renderer/vulkan/CLDeviceVk.cpp
+@@ -177,8 +177,8 @@ CLDeviceImpl::Info CLDeviceVk::createInfo(cl::DeviceType type) const
+ 
+     info.imageSupport = CL_TRUE;
+ 
+-    info.image2D_MaxWidth  = properties.limits.maxImageDimension2D;
+-    info.image2D_MaxHeight = properties.limits.maxImageDimension2D;
++    info.image2D_MaxWidth  = 16384;
++    info.image2D_MaxHeight = 16384;
+     info.image3D_MaxWidth  = properties.limits.maxImageDimension3D;
+     info.image3D_MaxHeight = properties.limits.maxImageDimension3D;
+     info.image3D_MaxDepth  = properties.limits.maxImageDimension3D;
+diff --git a/src/libANGLE/renderer/vulkan/vk_caps_utils.cpp b/src/libANGLE/renderer/vulkan/vk_caps_utils.cpp
+index 4102464..cdf0219 100644
+--- a/src/libANGLE/renderer/vulkan/vk_caps_utils.cpp
++++ b/src/libANGLE/renderer/vulkan/vk_caps_utils.cpp
+@@ -658,13 +658,12 @@ void Renderer::ensureCapsInitialized() const
+     mNativeCaps.maxElementIndex = (1 << 30) - 1;
+ 
+     mNativeCaps.max3DTextureSize = rx::LimitToInt(limitsVk.maxImageDimension3D);
+-    mNativeCaps.max2DTextureSize =
+-        std::min(limitsVk.maxFramebufferWidth, limitsVk.maxImageDimension2D);
++    mNativeCaps.max2DTextureSize = uint32_t(16384);
+     mNativeCaps.maxArrayTextureLayers = rx::LimitToInt(limitsVk.maxImageArrayLayers);
+     mNativeCaps.maxLODBias            = limitsVk.maxSamplerLodBias;
+     mNativeCaps.maxCubeMapTextureSize = rx::LimitToInt(limitsVk.maxImageDimensionCube);
+     mNativeCaps.maxRenderbufferSize =
+-        std::min({limitsVk.maxImageDimension2D, limitsVk.maxFramebufferWidth,
++        std::min({uint32_t(16384), limitsVk.maxFramebufferWidth,
+                   limitsVk.maxFramebufferHeight});
+     mNativeCaps.minAliasedPointSize = std::max(1.0f, limitsVk.pointSizeRange[0]);
+     mNativeCaps.maxAliasedPointSize = limitsVk.pointSizeRange[1];
+@@ -1567,12 +1566,7 @@ EGLint ComputeMaximumPBufferPixels(const VkPhysicalDeviceProperties &physicalDev
+     // http://anglebug.com/42261335
+ 
+     // Storing the result of squaring a 32-bit unsigned int in a 64-bit unsigned int is safe.
+-    static_assert(std::is_same<decltype(physicalDeviceProperties.limits.maxImageDimension2D),
+-                               uint32_t>::value,
+-                  "physicalDeviceProperties.limits.maxImageDimension2D expected to be a uint32_t.");
+-    const uint64_t maxDimensionsSquared =
+-        static_cast<uint64_t>(physicalDeviceProperties.limits.maxImageDimension2D) *
+-        static_cast<uint64_t>(physicalDeviceProperties.limits.maxImageDimension2D);
++    const uint64_t maxDimensionsSquared = 16384ull * 16384ull;
+ 
+     return static_cast<EGLint>(std::min(maxDimensionsSquared, kMaxValueForEGLint));
+ }
+@@ -1630,8 +1624,8 @@ egl::Config GenerateDefaultConfig(DisplayVk *display,
+     config.stencilSize        = depthStencilFormat.stencilBits;
+     config.level              = 0;
+     config.matchNativePixmap  = EGL_NONE;
+-    config.maxPBufferWidth    = physicalDeviceProperties.limits.maxImageDimension2D;
+-    config.maxPBufferHeight   = physicalDeviceProperties.limits.maxImageDimension2D;
++    config.maxPBufferWidth    = 8192;
++    config.maxPBufferHeight   = 8192;
+     config.maxPBufferPixels   = ComputeMaximumPBufferPixels(physicalDeviceProperties);
+     config.maxSwapInterval    = 1;
+     config.minSwapInterval    = 0;
+diff --git a/src/libANGLE/validationES.cpp b/src/libANGLE/validationES.cpp
+index 1f3b77e..d224c68 100644
+--- a/src/libANGLE/validationES.cpp
++++ b/src/libANGLE/validationES.cpp
+@@ -1140,18 +1140,12 @@ bool ValidFramebufferTarget(const Context *context, GLenum target)
+ 
+ bool ValidMipLevel(const Context *context, TextureType type, GLint level)
+ {
+-    const auto &caps = context->getCaps();
+-    int maxDimension = 0;
+     switch (type)
+     {
+         case TextureType::_2D:
+         case TextureType::_2DArray:
+-            maxDimension = caps.max2DTextureSize;
+-            break;
+-
+         case TextureType::CubeMap:
+         case TextureType::CubeMapArray:
+-            maxDimension = caps.maxCubeMapTextureSize;
+             break;
+ 
+         case TextureType::External:
+@@ -1163,14 +1157,13 @@ bool ValidMipLevel(const Context *context, TextureType type, GLint level)
+             return level == 0;
+ 
+         case TextureType::_3D:
+-            maxDimension = caps.max3DTextureSize;
+             break;
+ 
+         default:
+             UNREACHABLE();
+     }
+ 
+-    return level <= log2(maxDimension) && level >= 0;
++    return level <= log2(16384) && level >= 0;
+ }
+ 
+ bool ValidImageSizeParameters(const Context *context,
+@@ -3980,30 +3973,14 @@ bool ValidateCopyTexImageParametersBase(const Context *context,
+         return false;
+     }
+ 
+-    const Caps &caps = context->getCaps();
+-
+-    GLint maxDimension = 0;
+     switch (texType)
+     {
+         case TextureType::_2D:
+-            maxDimension = caps.max2DTextureSize;
+-            break;
+-
+         case TextureType::CubeMap:
+         case TextureType::CubeMapArray:
+-            maxDimension = caps.maxCubeMapTextureSize;
+-            break;
+-
+         case TextureType::Rectangle:
+-            maxDimension = caps.maxRectangleTextureSize;
+-            break;
+-
+         case TextureType::_2DArray:
+-            maxDimension = caps.max2DTextureSize;
+-            break;
+-
+         case TextureType::_3D:
+-            maxDimension = caps.max3DTextureSize;
+             break;
+ 
+         default:
+@@ -4058,14 +4035,6 @@ bool ValidateCopyTexImageParametersBase(const Context *context,
+             ANGLE_VALIDATION_ERRORF(GL_INVALID_ENUM, kEnumNotSupported, internalformat);
+             return false;
+         }
+-
+-        int maxLevelDimension = (maxDimension >> level);
+-        if (static_cast<int>(width) > maxLevelDimension ||
+-            static_cast<int>(height) > maxLevelDimension)
+-        {
+-            ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-            return false;
+-        }
+     }
+ 
+     // Do not leak the previous texture format for non-subImage case.
+diff --git a/src/libANGLE/validationES2.cpp b/src/libANGLE/validationES2.cpp
+index 66f70c8..b82e078 100644
+--- a/src/libANGLE/validationES2.cpp
++++ b/src/libANGLE/validationES2.cpp
+@@ -968,35 +968,14 @@ bool ValidateES2TexImageParametersBase(const Context *context,
+         return false;
+     }
+ 
+-    if ((xoffset < 0 || std::numeric_limits<GLsizei>::max() - xoffset < width) ||
+-        (yoffset < 0 || std::numeric_limits<GLsizei>::max() - yoffset < height))
+-    {
+-        ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-        return false;
+-    }
+-
+-    const Caps &caps = context->getCaps();
+-
+     switch (texType)
+     {
+         case TextureType::_2D:
+         case TextureType::External:
+         case TextureType::VideoImage:
+-            if (width > (caps.max2DTextureSize >> level) ||
+-                height > (caps.max2DTextureSize >> level))
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+             break;
+-
+         case TextureType::Rectangle:
+             ASSERT(level == 0);
+-            if (width > caps.maxRectangleTextureSize || height > caps.maxRectangleTextureSize)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+             if (isCompressed)
+             {
+                 ANGLE_VALIDATION_ERROR(GL_INVALID_ENUM, kRectangleTextureCompressed);
+@@ -1010,13 +989,6 @@ bool ValidateES2TexImageParametersBase(const Context *context,
+                 ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kCubemapFacesEqualDimensions);
+                 return false;
+             }
+-
+-            if (width > (caps.maxCubeMapTextureSize >> level) ||
+-                height > (caps.maxCubeMapTextureSize >> level))
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+             break;
+ 
+         default:
+@@ -1764,16 +1736,9 @@ bool ValidateES2TexStorageParametersBase(const Context *context,
+         return false;
+     }
+ 
+-    const Caps &caps = context->getCaps();
+-
+     switch (target)
+     {
+         case TextureType::_2D:
+-            if (width > caps.max2DTextureSize || height > caps.max2DTextureSize)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+             break;
+         case TextureType::Rectangle:
+             if (levels != 1)
+@@ -1782,24 +1747,12 @@ bool ValidateES2TexStorageParametersBase(const Context *context,
+                 return false;
+             }
+ 
+-            if (width > caps.maxRectangleTextureSize || height > caps.maxRectangleTextureSize)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+             if (formatInfo.compressed)
+             {
+                 ANGLE_VALIDATION_ERROR(GL_INVALID_ENUM, kRectangleTextureCompressed);
+                 return false;
+             }
+             break;
+-        case TextureType::CubeMap:
+-            if (width > caps.maxCubeMapTextureSize || height > caps.maxCubeMapTextureSize)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+-            break;
+         case TextureType::InvalidEnum:
+             ANGLE_VALIDATION_ERROR(GL_INVALID_ENUM, kEnumInvalid);
+             return false;
+diff --git a/src/libANGLE/validationES3.cpp b/src/libANGLE/validationES3.cpp
+index dcd30ee..070cbdf 100644
+--- a/src/libANGLE/validationES3.cpp
++++ b/src/libANGLE/validationES3.cpp
+@@ -489,28 +489,15 @@ bool ValidateES3TexImageParametersBase(const Context *context,
+         return false;
+     }
+ 
+-    const Caps &caps = context->getCaps();
+-
+     switch (texType)
+     {
+         case TextureType::_2D:
+         case TextureType::External:
+         case TextureType::VideoImage:
+-            if (width > (caps.max2DTextureSize >> level) ||
+-                height > (caps.max2DTextureSize >> level))
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+             break;
+ 
+         case TextureType::Rectangle:
+             ASSERT(level == 0);
+-            if (width > caps.maxRectangleTextureSize || height > caps.maxRectangleTextureSize)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+             if (isCompressed)
+             {
+                 ANGLE_VALIDATION_ERROR(GL_INVALID_ENUM, kRectangleTextureCompressed);
+@@ -525,30 +512,12 @@ bool ValidateES3TexImageParametersBase(const Context *context,
+                 return false;
+             }
+ 
+-            if (width > (caps.maxCubeMapTextureSize >> level))
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+             break;
+ 
+         case TextureType::_3D:
+-            if (width > (caps.max3DTextureSize >> level) ||
+-                height > (caps.max3DTextureSize >> level) ||
+-                depth > (caps.max3DTextureSize >> level))
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+             break;
+ 
+         case TextureType::_2DArray:
+-            if (width > (caps.max2DTextureSize >> level) ||
+-                height > (caps.max2DTextureSize >> level) || depth > caps.maxArrayTextureLayers)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+             break;
+ 
+         case TextureType::CubeMapArray:
+@@ -566,14 +535,6 @@ bool ValidateES3TexImageParametersBase(const Context *context,
+                     return false;
+                 }
+             }
+-
+-            if (width > (caps.maxCubeMapTextureSize >> level) ||
+-                height > (caps.maxCubeMapTextureSize >> level) ||
+-                depth > caps.maxArrayTextureLayers)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+             break;
+ 
+         case TextureType::InvalidEnum:
+@@ -1304,19 +1265,10 @@ bool ValidateES3TexStorageParametersExtent(const Context *context,
+                                            GLsizei height,
+                                            GLsizei depth)
+ {
+-    const Caps &caps = context->getCaps();
+-
+     switch (target)
+     {
+         case TextureType::_2D:
+-        {
+-            if (width > caps.max2DTextureSize || height > caps.max2DTextureSize)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+-        }
+-        break;
++            break;
+ 
+         case TextureType::Rectangle:
+         {
+@@ -1325,12 +1277,6 @@ bool ValidateES3TexStorageParametersExtent(const Context *context,
+                 ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kInvalidMipLevels);
+                 return false;
+             }
+-
+-            if (width > caps.maxRectangleTextureSize || height > caps.maxRectangleTextureSize)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+         }
+         break;
+ 
+@@ -1341,36 +1287,14 @@ bool ValidateES3TexStorageParametersExtent(const Context *context,
+                 ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kCubemapFacesEqualDimensions);
+                 return false;
+             }
+-
+-            if (width > caps.maxCubeMapTextureSize)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+         }
+         break;
+ 
+         case TextureType::_3D:
+-        {
+-            if (width > caps.max3DTextureSize || height > caps.max3DTextureSize ||
+-                depth > caps.max3DTextureSize)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+-        }
+-        break;
++            break;
+ 
+         case TextureType::_2DArray:
+-        {
+-            if (width > caps.max2DTextureSize || height > caps.max2DTextureSize ||
+-                depth > caps.maxArrayTextureLayers)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+-        }
+-        break;
++            break;
+ 
+         case TextureType::CubeMapArray:
+         {
+@@ -1380,12 +1304,6 @@ bool ValidateES3TexStorageParametersExtent(const Context *context,
+                 return false;
+             }
+ 
+-            if (width > caps.maxCubeMapTextureSize || depth > caps.maxArrayTextureLayers)
+-            {
+-                ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-                return false;
+-            }
+-
+             if (depth % 6 != 0)
+             {
+                 ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kCubemapInvalidDepth);
+diff --git a/src/libANGLE/validationESEXT.cpp b/src/libANGLE/validationESEXT.cpp
+index 1771d11..ef97411 100644
+--- a/src/libANGLE/validationESEXT.cpp
++++ b/src/libANGLE/validationESEXT.cpp
+@@ -3614,16 +3614,7 @@ bool ValidateEGLImageTargetTexStorageEXT(const Context *context,
+         return false;
+     }
+ 
+-    if (targetType == TextureType::External)
+-    {
+-        const Caps &caps = context->getCaps();
+-        if (width > caps.max2DTextureSize || height > caps.max2DTextureSize)
+-        {
+-            ANGLE_VALIDATION_ERROR(GL_INVALID_VALUE, kResourceMaxTextureSize);
+-            return false;
+-        }
+-    }
+-    else if (!ValidateES3TexStorageParametersExtent(context, entryPoint, targetType, levelCount,
++    if (!ValidateES3TexStorageParametersExtent(context, entryPoint, targetType, levelCount,
+                                                     width, height, depth))
+     {
+         // Error already generated.
+-- 
+2.47.3
+
