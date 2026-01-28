@@ -33,11 +33,11 @@ index a120b4d..135dd85 100644
              break;
          case GL_MAX_TEXTURE_SIZE:
 -            *params = mState.getCaps().max2DTextureSize;
-+            *params = 16384u;
++            *params = 16384;
              break;
          case GL_MAX_RECTANGLE_TEXTURE_SIZE_ANGLE:
 -            *params = mState.getCaps().maxRectangleTextureSize;
-+            *params = 16384u;
++            *params = 16384;
              break;
          case GL_MAX_CUBE_MAP_TEXTURE_SIZE:
              *params = mState.getCaps().maxCubeMapTextureSize;
@@ -109,8 +109,8 @@ index b074753..1ff639b 100644
                  config.matchNativePixmap = EGL_NONE;
 -                config.maxPBufferWidth   = rendererCaps.max2DTextureSize;
 -                config.maxPBufferHeight  = rendererCaps.max2DTextureSize;
-+                config.maxPBufferWidth   = 16384u;
-+                config.maxPBufferHeight  = 16384u;
++                config.maxPBufferWidth   = 16384;
++                config.maxPBufferHeight  = 16384;
                  config.maxPBufferPixels =
 -                    rendererCaps.max2DTextureSize * rendererCaps.max2DTextureSize;
 +                    16384u * 16384u;
@@ -126,7 +126,7 @@ index 6cc6949..2549ad0 100644
      caps->maxElementIndex  = static_cast<GLint64>(std::numeric_limits<unsigned int>::max() - 1);
      caps->max3DTextureSize = GetMaximum3DTextureSize(featureLevel);
 -    caps->max2DTextureSize = GetMaximum2DTextureSize(featureLevel);
-+    caps->max2DTextureSize = 16384u;
++    caps->max2DTextureSize = 16384;
      caps->maxCubeMapTextureSize = GetMaximumCubeMapTextureSize(featureLevel);
      caps->maxArrayTextureLayers = GetMaximum2DTextureArraySize(featureLevel);
  
@@ -135,7 +135,7 @@ index 6cc6949..2549ad0 100644
  
      // No specific limits on render target size, maximum 2D texture size is equivalent
 -    caps->maxRenderbufferSize = caps->max2DTextureSize;
-+    caps->maxRenderbufferSize = 16384u;
++    caps->maxRenderbufferSize = 16384;
  
      // Maximum draw buffers and color attachments are the same, max color attachments could
      // eventually be increased to 16
@@ -149,8 +149,8 @@ index c81d071..993808b 100644
                      config.matchNativePixmap = EGL_NONE;
 -                    config.maxPBufferWidth   = rendererCaps.max2DTextureSize;
 -                    config.maxPBufferHeight  = rendererCaps.max2DTextureSize;
-+                    config.maxPBufferWidth   = 16384u;
-+                    config.maxPBufferHeight  = 16384u;
++                    config.maxPBufferWidth   = 16384;
++                    config.maxPBufferHeight  = 16384;
                      config.maxPBufferPixels =
 -                        rendererCaps.max2DTextureSize * rendererCaps.max2DTextureSize;
 +                        16384u * 16384u;
@@ -166,11 +166,11 @@ index 52e9cda..0c9e049 100644
  
      // Only one limit in GL, use the minimum dimension
 -    caps->max2DTextureSize = std::min(deviceCaps.MaxTextureWidth, deviceCaps.MaxTextureHeight);
-+    caps->max2DTextureSize = 16384u;
++    caps->max2DTextureSize = 16384;
  
      // D3D treats cube maps as a special case of 2D textures
 -    caps->maxCubeMapTextureSize = caps->max2DTextureSize;
-+    caps->maxCubeMapTextureSize = 16384u;
++    caps->maxCubeMapTextureSize = 16384;
  
      // Array textures are not available in D3D9
      caps->maxArrayTextureLayers = 1;
@@ -179,7 +179,7 @@ index 52e9cda..0c9e049 100644
  
      // No specific limits on render target size, maximum 2D texture size is equivalent
 -    caps->maxRenderbufferSize = caps->max2DTextureSize;
-+    caps->maxRenderbufferSize = 16384u;
++    caps->maxRenderbufferSize = 16384;
  
      // Draw buffers are not supported in D3D9
      caps->maxDrawBuffers      = 1;
@@ -187,7 +187,7 @@ index 52e9cda..0c9e049 100644
  
      // No specific limits on viewport size, maximum 2D texture size is equivalent
 -    caps->maxViewportWidth  = caps->max2DTextureSize;
-+    caps->maxViewportWidth  = 16384u;
++    caps->maxViewportWidth  = 16384;
      caps->maxViewportHeight = caps->maxViewportWidth;
  
      // Point size is clamped to 1.0f when the shader model is less than 3
@@ -201,8 +201,8 @@ index b395697..a23272d 100644
  
 -    info.image2D_MaxWidth  = properties.limits.maxImageDimension2D;
 -    info.image2D_MaxHeight = properties.limits.maxImageDimension2D;
-+    info.image2D_MaxWidth  = 16384u;
-+    info.image2D_MaxHeight = 16384u;
++    info.image2D_MaxWidth  = 16384;
++    info.image2D_MaxHeight = 16384;
      info.image3D_MaxWidth  = properties.limits.maxImageDimension3D;
      info.image3D_MaxHeight = properties.limits.maxImageDimension3D;
      info.image3D_MaxDepth  = properties.limits.maxImageDimension3D;
@@ -216,13 +216,13 @@ index 4102464..1254db6 100644
      mNativeCaps.max3DTextureSize = rx::LimitToInt(limitsVk.maxImageDimension3D);
 -    mNativeCaps.max2DTextureSize =
 -        std::min(limitsVk.maxFramebufferWidth, limitsVk.maxImageDimension2D);
-+    mNativeCaps.max2DTextureSize = 16384u;
++    mNativeCaps.max2DTextureSize = 16384;
      mNativeCaps.maxArrayTextureLayers = rx::LimitToInt(limitsVk.maxImageArrayLayers);
      mNativeCaps.maxLODBias            = limitsVk.maxSamplerLodBias;
      mNativeCaps.maxCubeMapTextureSize = rx::LimitToInt(limitsVk.maxImageDimensionCube);
      mNativeCaps.maxRenderbufferSize =
 -        std::min({limitsVk.maxImageDimension2D, limitsVk.maxFramebufferWidth,
-+        std::min({16384u, limitsVk.maxFramebufferWidth,
++        std::min({16384, limitsVk.maxFramebufferWidth,
                    limitsVk.maxFramebufferHeight});
      mNativeCaps.minAliasedPointSize = std::max(1.0f, limitsVk.pointSizeRange[0]);
      mNativeCaps.maxAliasedPointSize = limitsVk.pointSizeRange[1];
@@ -236,7 +236,7 @@ index 4102464..1254db6 100644
 -    const uint64_t maxDimensionsSquared =
 -        static_cast<uint64_t>(physicalDeviceProperties.limits.maxImageDimension2D) *
 -        static_cast<uint64_t>(physicalDeviceProperties.limits.maxImageDimension2D);
-+    const uint64_t maxDimensionsSquared = 16384u * 16384u;
++    const uint64_t maxDimensionsSquared = 16384ull * 16384ull;
  
      return static_cast<EGLint>(std::min(maxDimensionsSquared, kMaxValueForEGLint));
  }
@@ -246,8 +246,8 @@ index 4102464..1254db6 100644
      config.matchNativePixmap  = EGL_NONE;
 -    config.maxPBufferWidth    = physicalDeviceProperties.limits.maxImageDimension2D;
 -    config.maxPBufferHeight   = physicalDeviceProperties.limits.maxImageDimension2D;
-+    config.maxPBufferWidth    = 16384u;
-+    config.maxPBufferHeight   = 16384u;
++    config.maxPBufferWidth    = 16384;
++    config.maxPBufferHeight   = 16384;
      config.maxPBufferPixels   = ComputeMaximumPBufferPixels(physicalDeviceProperties);
      config.maxSwapInterval    = 1;
      config.minSwapInterval    = 0;
@@ -260,7 +260,7 @@ index 355ea94..a86293d 100644
      glCaps->maxElementIndex       = std::numeric_limits<GLuint>::max() - 1;
      glCaps->max3DTextureSize      = rx::LimitToInt(limitsWgpu.maxTextureDimension3D);
 -    glCaps->max2DTextureSize      = rx::LimitToInt(limitsWgpu.maxTextureDimension2D);
-+    glCaps->max2DTextureSize      = 16384u;
++    glCaps->max2DTextureSize      = 16384;
      glCaps->maxArrayTextureLayers = rx::LimitToInt(limitsWgpu.maxTextureArrayLayers);
      glCaps->maxLODBias            = 0.0f;
      glCaps->maxCubeMapTextureSize = rx::LimitToInt(limitsWgpu.maxTextureDimension2D);
@@ -273,11 +273,11 @@ index b62b559..179052c 100644
          case gl::TextureType::_2DArray:
          case gl::TextureType::_2DMultisample:
 -            maxDimension = caps.max2DTextureSize;
-+            maxDimension = 16384u;
++            maxDimension = 16384;
              break;
          case gl::TextureType::Rectangle:
 -            maxDimension = caps.maxRectangleTextureSize;
-+            maxDimension = 16384u;
++            maxDimension = 16384;
              break;
          case gl::TextureType::CubeMap:
              maxDimension = caps.maxCubeMapTextureSize;
@@ -316,7 +316,7 @@ index 1f3b77e..3e4de68 100644
      }
  
 -    return level <= log2(maxDimension) && level >= 0;
-+    return level <= log2(16384u) && level >= 0;
++    return level <= log2(16384) && level >= 0;
  }
  
  bool ValidImageSizeParameters(const Context *context,
