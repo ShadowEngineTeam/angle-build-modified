@@ -80,7 +80,7 @@ class Setup
 
 				FileUtil.goAndBackFromDir('cpu_features', function():Void
 				{
-					if (!FileSystem.exists('src/cpu-features'))
+					if (!FileSystem.exists('src/ndk_compat'))
 					{
 						FileUtil.deletePath('src');
 						Sys.command('git', ['clone', 'https://github.com/google/cpu_features', 'src', '-b', 'v0.8.0']);
