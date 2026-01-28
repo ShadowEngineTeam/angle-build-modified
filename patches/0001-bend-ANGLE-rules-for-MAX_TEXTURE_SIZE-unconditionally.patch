@@ -50,11 +50,11 @@ index a120b4d..135dd85 100644
 -        ANGLE_LIMIT_CAP(caps->maxCubeMapTextureSize, limitations.webGLTextureSizeLimit);
 -        ANGLE_LIMIT_CAP(caps->maxArrayTextureLayers, limitations.webGLTextureSizeLimit);
 -        ANGLE_LIMIT_CAP(caps->maxRectangleTextureSize, limitations.webGLTextureSizeLimit);
-+        ANGLE_LIMIT_CAP(caps->max2DTextureSize, 16384u);
-+        ANGLE_LIMIT_CAP(caps->max3DTextureSize, 16384u);
-+        ANGLE_LIMIT_CAP(caps->maxCubeMapTextureSize, 16384u);
-+        ANGLE_LIMIT_CAP(caps->maxArrayTextureLayers, 16384u);
-+        ANGLE_LIMIT_CAP(caps->maxRectangleTextureSize, 16384u);
++        ANGLE_LIMIT_CAP(caps->max2DTextureSize, 16384);
++        ANGLE_LIMIT_CAP(caps->max3DTextureSize, 16384);
++        ANGLE_LIMIT_CAP(caps->maxCubeMapTextureSize, 16384);
++        ANGLE_LIMIT_CAP(caps->maxArrayTextureLayers, 16384);
++        ANGLE_LIMIT_CAP(caps->maxRectangleTextureSize, 16384);
      }
  
 -    ANGLE_LIMIT_CAP(caps->max2DTextureSize, IMPLEMENTATION_MAX_2D_TEXTURE_SIZE);
@@ -62,11 +62,11 @@ index a120b4d..135dd85 100644
 -    ANGLE_LIMIT_CAP(caps->max3DTextureSize, IMPLEMENTATION_MAX_3D_TEXTURE_SIZE);
 -    ANGLE_LIMIT_CAP(caps->maxArrayTextureLayers, IMPLEMENTATION_MAX_2D_ARRAY_TEXTURE_LAYERS);
 -    ANGLE_LIMIT_CAP(caps->maxRectangleTextureSize, IMPLEMENTATION_MAX_2D_TEXTURE_SIZE);
-+    ANGLE_LIMIT_CAP(caps->max2DTextureSize, 16384u);
-+    ANGLE_LIMIT_CAP(caps->maxCubeMapTextureSize, 16384u);
-+    ANGLE_LIMIT_CAP(caps->max3DTextureSize, 16384u);
-+    ANGLE_LIMIT_CAP(caps->maxArrayTextureLayers, 16384u);
-+    ANGLE_LIMIT_CAP(caps->maxRectangleTextureSize, 16384u);
++    ANGLE_LIMIT_CAP(caps->max2DTextureSize, 16384);
++    ANGLE_LIMIT_CAP(caps->maxCubeMapTextureSize, 16384);
++    ANGLE_LIMIT_CAP(caps->max3DTextureSize, 16384);
++    ANGLE_LIMIT_CAP(caps->maxArrayTextureLayers, 16384);
++    ANGLE_LIMIT_CAP(caps->maxRectangleTextureSize, 16384);
  
      ANGLE_LIMIT_CAP(caps->maxShaderUniformBlocks[ShaderType::Vertex],
                      IMPLEMENTATION_MAX_VERTEX_SHADER_UNIFORM_BUFFERS);
