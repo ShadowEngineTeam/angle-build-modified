@@ -1,7 +1,7 @@
 From 9fbba92869687f7def0f447d8ee8379b14eed3bf Mon Sep 17 00:00:00 2001
 From: Homura <egzozu.be.bas@gmail.com>
 Date: Thu, 29 Jan 2026 23:43:54 +0300
-Subject: [PATCH] Enable D3D9 support for `ANGLE_DEFAULT_PLATFORM`
+Subject: [PATCH] Enable D3D9 support for `ANGLE_DEFAULT_PLATFORM`.
 
 ---
  src/libANGLE/Display.cpp | 7 +++++++
