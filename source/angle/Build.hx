@@ -245,14 +245,14 @@ class Build
 					renderingBackends.push('angle_enable_wgpu=false'); // Disable WebGPU backend
 					renderingBackends.push('angle_enable_swiftshader=false'); // Disable SwiftShader
 
-					/*if (buildPlatform == 'windows')
+					if (buildPlatform == 'windows')
 					{
 						renderingBackends.push('angle_enable_d3d11=true'); // Enable D3D11 backend
 					}
 					else
-					{*/
+					{
 						renderingBackends.push('angle_enable_d3d11=false'); // Disable D3D11 backend
-					//}
+					}
 
 					renderingBackends.push('angle_enable_vulkan=true'); // Enable Vulkan backend
 					renderingBackends.push('angle_enable_vulkan_api_dump_layer=false'); // Disable Vulkan API dump layer
