@@ -163,28 +163,56 @@ class Build
 		}
 		else if (buildPlatform == 'ios')
 		{
-		    for (libName => libEnviroment in iosFrameworksToCombine)
-		    {
+			final iosFrameworksToXCFramework:Map<String, Array<String>> = [];
+
+			for (libName => libEnviroment in iosFrameworksToCombine)
+			{
+				if (!iosFrameworksToXCFramework.exists(libName))
+					iosFrameworksToXCFramework.set(libName, new Array<String>());
+
+				for (libEnviromentName => libEnviromentLibs in libEnviroment)
+				{
+					if (libEnviromentLibs.length >= 2)
+					{
+						final universalLibDestination:String = 'build/$buildPlatform/lib/$libEnviromentName/universal/$libName.framework';
+
+						FileUtil.createDirectory(Path.directory(Path.addTrailingSlash(universalLibDestination)));
+
+						{
+							final frameworksToMerge:Array<String> = [];
+
+							for (framework in libEnviromentLibs)
+								frameworksToMerge.push('$framework/$libName');
+
+							if (Sys.command('lipo', ['-create', '-output', '$universalLibDestination/$libName'].concat(frameworksToMerge)) != 0)
+								Sys.println(ANSIUtil.apply('Failed to create universal lib for "$libName".', [ANSICode.Bold, ANSICode.Yellow]));
+						}
+
+						iosFrameworksToXCFramework.get(libName)?.push(universalLibDestination);
+					}
+					else
+					{
+						iosFrameworksToXCFramework.get(libName)?.push(libEnviromentLibs[0]);
+					}
+				}
+			}
+
+			for (frameworkName => frameworkPaths in iosFrameworksToXCFramework)
+			{
+				final universalFrameworkDestination:String = 'build/$buildPlatform/lib/universal/$frameworkName.xcframework';
+
+				FileUtil.createDirectory(Path.directory(universalFrameworkDestination));
+
 				final frameworksToMerge:Array<String> = [];
-		        final universalFrameworkDestination:String = 'build/$buildPlatform/lib/universal/$libName.xcframework';
-		
-		        FileUtil.createDirectory(Path.directory(universalFrameworkDestination));
-		
-		        for (libEnviromentName => libEnviromentLibs in libEnviroment)
-		        {
-		            for (framework in libEnviromentLibs)
-		            {
-		                frameworksToMerge.push('-framework');
-		                frameworksToMerge.push(framework);
-		            }
-		        }
-		
-		        if (Sys.command('xcodebuild', ['-create-xcframework'].concat(frameworksToMerge).concat(['-output', universalFrameworkDestination])) != 0)
-		        {
-		            Sys.println(ANSIUtil.apply('Failed to create XCFramework for "$libName".', [ANSICode.Bold, ANSICode.Red]));
-		            Sys.exit(1);
-		        }
-		    }
+
+				for (framework in frameworkPaths)
+				{
+					frameworksToMerge.push('-framework');
+					frameworksToMerge.push(framework);
+				}
+
+				Sys.command('xcodebuild', ['-create-xcframework'].concat(frameworksToMerge).concat(['-output', universalFrameworkDestination]));
+			}
 		}
 
 		// Print
