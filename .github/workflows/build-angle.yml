@@ -18,7 +18,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1
 
       - name: Setup Haxe
-        uses: krdlab/setup-haxe@master
+        uses: ShadowEngineTeam/setup-haxe@main
         with:
           haxe-version: 4.3.7
 
@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@main
 
       - name: Setup Haxe
-        uses: krdlab/setup-haxe@master
+        uses: ShadowEngineTeam/setup-haxe@main
         with:
           haxe-version: 4.3.7
 
@@ -58,7 +58,7 @@ jobs:
         uses: actions/checkout@main
 
       - name: Setup Haxe
-        uses: krdlab/setup-haxe@master
+        uses: ShadowEngineTeam/setup-haxe@main
         with:
           haxe-version: 4.3.7
 
@@ -78,7 +78,7 @@ jobs:
         uses: actions/checkout@main
 
       - name: Setup Haxe
-        uses: krdlab/setup-haxe@master
+        uses: ShadowEngineTeam/setup-haxe@main
         with:
           haxe-version: 4.3.7
 
@@ -98,7 +98,7 @@ jobs:
         uses: actions/checkout@main
 
       - name: Setup Haxe
-        uses: krdlab/setup-haxe@master
+        uses: ShadowEngineTeam/setup-haxe@main
         with:
           haxe-version: 4.3.7
 
