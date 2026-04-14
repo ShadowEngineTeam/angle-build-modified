@@ -242,7 +242,14 @@ class Build
 					renderingBackends.push('angle_enable_metal=false'); // Disable Metal backend
 					renderingBackends.push('angle_enable_null=false'); // Disable Null backend
 					renderingBackends.push('angle_enable_wgpu=false'); // Disable WebGPU backend
-					renderingBackends.push('angle_enable_swiftshader=true'); // Enable SwiftShader
+					if (buildPlatform != 'android')
+					{
+						renderingBackends.push('angle_enable_swiftshader=true'); // Enable SwiftShader
+					}
+					else
+					{
+						renderingBackends.push('angle_enable_swiftshader=false'); // Disable SwiftShader
+					}
 
 					if (buildPlatform == 'windows')
 					{
