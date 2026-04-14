@@ -91,7 +91,7 @@ class Setup
 			if (platform == 'windows')
 				FileUtil.goAndBackFromDir('third_party/SwiftShader/third_party/llvm-10.0', function():Void
 				{
-					Sys.command("sed -i 's/cflags += \\[/cflags += [ \"\\/std:c++17\",/' BUILD.gn");
+					Sys.command("sed -i '/SuccIterator(InstructionT \\*Inst)/i\\  SuccIterator() : Inst(nullptr), Idx(0) {}' llvm/include/llvm/IR/CFG.h");
 				});
 
 			FileUtil.applyGitPatchesFromDir('../../patches');
