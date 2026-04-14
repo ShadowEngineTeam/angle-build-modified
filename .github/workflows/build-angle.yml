@@ -77,19 +77,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
 
-      - name: Setup Android NDK
-        uses: nttld/setup-ndk@main
-        id: setup-ndk
-        with:
-          ndk-version: r21e
-
       - name: Setup Haxe
         uses: ShadowEngineTeam/setup-haxe@main
         with:
           haxe-version: 4.3.7
 
       - name: Build Angle
-        run: ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }} haxe build.hxml --define buildPlatform=android
+        run: ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME haxe build.hxml --define buildPlatform=android
 
       - name: Upload Artifact
         uses: actions/upload-artifact@main
