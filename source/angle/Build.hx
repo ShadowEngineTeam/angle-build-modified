@@ -260,12 +260,6 @@ class Build
 					renderingBackends.push('angle_enable_vulkan_validation_layers=false'); // Disable Vulkan validation layers
 					renderingBackends.push('angle_use_custom_libvulkan=false'); // Use system Vulkan loader only
 
-					if (buildPlatform == 'linux')
-					{
-						renderingBackends.push('angle_use_x11=true'); // Use X11 frontend
-						renderingBackends.push('angle_use_wayland=true'); // Use Wayland frontend
-					}
-
 					if (buildPlatform == 'windows')
 					{
 						final targetConfigX64:Config = getDefaultTargetPlatform();
@@ -347,6 +341,8 @@ class Build
 					{
 						renderingBackends.push('angle_enable_gl=true'); // Enable OpenGL backend
 						renderingBackends.push('angle_enable_vulkan=true'); // Enable Vulkan backend
+						renderingBackends.push('angle_enable_vulkan_api_dump_layer=false'); // Disable Vulkan API dump layer
+						renderingBackends.push('angle_enable_vulkan_validation_layers=false'); // Disable Vulkan validation layers
 					}
 					else 
 					{
@@ -356,7 +352,7 @@ class Build
 					renderingBackends.push('angle_enable_metal=true'); // Enable Metal backend
 					renderingBackends.push('angle_enable_null=false'); // Disable Null backend
 					renderingBackends.push('angle_enable_wgpu=false'); // Disable WebGPU backend
-					renderingBackends.push('angle_enable_swiftshader=false'); // Disable SwiftShader
+					renderingBackends.push('angle_enable_swiftshader=true'); // Enable SwiftShader
 
 					if (buildPlatform == 'macos')
 					{
