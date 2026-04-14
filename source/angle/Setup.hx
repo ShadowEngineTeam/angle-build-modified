@@ -97,7 +97,7 @@ class Setup
 			FileUtil.applyGitPatchesFromDir('../../patches');
 
 			if (platform == 'android')
-				FileUtil.copyFile('patches/include/vulkan/vk_android_native_buffer.h', 'third_party/SwiftShader/include/vulkan/vk_android_native_buffer.h');
+				FileUtil.copyFile('../../patches/include/vulkan/vk_android_native_buffer.h', 'third_party/SwiftShader/include/vulkan/vk_android_native_buffer.h');
 		});
 
 		// Print
