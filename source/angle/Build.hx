@@ -242,7 +242,7 @@ class Build
 					renderingBackends.push('angle_enable_metal=false'); // Disable Metal backend
 					renderingBackends.push('angle_enable_null=false'); // Disable Null backend
 					renderingBackends.push('angle_enable_wgpu=false'); // Disable WebGPU backend
-					renderingBackends.push('angle_enable_swiftshader=false'); // Disable SwiftShader
+					renderingBackends.push('angle_enable_swiftshader=true'); // Enable SwiftShader
 
 					if (buildPlatform == 'windows')
 					{
@@ -355,7 +355,7 @@ class Build
 					renderingBackends.push('angle_enable_null=false'); // Disable Null backend
 					renderingBackends.push('angle_enable_wgpu=false'); // Disable WebGPU backend
 					renderingBackends.push('angle_enable_vulkan=false'); // Disable Vulkan backend
-					renderingBackends.push('angle_enable_swiftshader=false'); // Disable SwiftShader
+					renderingBackends.push('angle_enable_swiftshader=true'); // Enable SwiftShader
 
 					if (buildPlatform == 'macos')
 					{
