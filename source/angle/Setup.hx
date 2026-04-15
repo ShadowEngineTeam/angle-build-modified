@@ -79,7 +79,7 @@ class Setup
 			}
 
 			// Syncing ANGLE dependencies with gclient...
-			Sys.command('gclient', ['sync', '--no-history', '--jobs', '8']);
+			Sys.command('gclient', ['sync', '--force', '--with_branch_heads', '--with_tags', '--jobs', '8']);
 			Sys.command('gclient', ['runhooks']);
 
 			if (platform == 'windows')
