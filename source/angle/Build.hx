@@ -255,12 +255,10 @@ class Build
 					if (buildPlatform != 'android')
 					{
 						renderingBackends.push('angle_enable_swiftshader=true'); // Enable SwiftShader
-						renderingBackends.push('angle_use_custom_libvulkan=false');
 					}
 					else
 					{
 						renderingBackends.push('angle_enable_swiftshader=false'); // Disable SwiftShader
-						renderingBackends.push('angle_use_custom_libvulkan=true');
 					}
 
 					if (buildPlatform == 'windows')
@@ -277,6 +275,14 @@ class Build
 					renderingBackends.push('angle_enable_vulkan=true'); // Enable Vulkan backend
 					renderingBackends.push('angle_enable_vulkan_api_dump_layer=false'); // Disable Vulkan API dump layer
 					renderingBackends.push('angle_enable_vulkan_validation_layers=false'); // Disable Vulkan validation layers
+					if (buildPlatform != 'android')
+					{
+						renderingBackends.push('angle_use_custom_libvulkan=true'); // Use ANGLE's Vulkan loader
+					}
+					else
+					{
+						renderingBackends.push('angle_use_custom_libvulkan=false'); // Use system Vulkan loader
+					}
 
 					if (buildPlatform == 'windows')
 					{
