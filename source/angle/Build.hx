@@ -100,7 +100,7 @@ class Build
 			var libsToCopy:Array<String> = ANGLE_LIBS;
 
 			if (buildPlatform == 'windows')
-				libsToCopy = ['d3dcompiler_47', 'libEGL', 'libGLESv2', 'vk_swiftshader', 'vulkan-1'];
+				libsToCopy = ['d3dcompiler_47', 'libEGL', 'libGLESv2', 'vk_swiftshader'];
 			else if (buildPlatform == 'linux')
 				libsToCopy = ['libEGL', 'libGLESv2', 'libvk_swiftshader'];
 
@@ -150,11 +150,8 @@ class Build
 
 			if (buildPlatform == 'windows')
 				FileUtil.copyFile('angle/${buildConfig.getExportPath()}/vk_swiftshader_icd.json', 'build/$buildPlatform/bin/${buildConfig.cpu}/vk_swiftshader_icd.json');
-			else if (buildPlatform == 'linux')
-			{
+			else
 				FileUtil.copyFile('angle/${buildConfig.getExportPath()}/vk_swiftshader_icd.json', 'build/$buildPlatform/lib/${buildConfig.cpu}/vk_swiftshader_icd.json');
-				FileUtil.copyFile('angle/${buildConfig.getExportPath()}/libvulkan.so.1', 'build/$buildPlatform/lib/${buildConfig.cpu}/libvulkan.so.1');
-			}
 		}
 
 		if (buildPlatform == 'macos')
@@ -252,14 +249,7 @@ class Build
 					renderingBackends.push('angle_enable_metal=false'); // Disable Metal backend
 					renderingBackends.push('angle_enable_null=false'); // Disable Null backend
 					renderingBackends.push('angle_enable_wgpu=false'); // Disable WebGPU backend
-					if (buildPlatform != 'android')
-					{
-						renderingBackends.push('angle_enable_swiftshader=true'); // Enable SwiftShader
-					}
-					else
-					{
-						renderingBackends.push('angle_enable_swiftshader=false'); // Disable SwiftShader
-					}
+					renderingBackends.push('angle_enable_swiftshader=true'); // Enable SwiftShader
 
 					if (buildPlatform == 'windows')
 					{
@@ -275,14 +265,7 @@ class Build
 					renderingBackends.push('angle_enable_vulkan=true'); // Enable Vulkan backend
 					renderingBackends.push('angle_enable_vulkan_api_dump_layer=false'); // Disable Vulkan API dump layer
 					renderingBackends.push('angle_enable_vulkan_validation_layers=false'); // Disable Vulkan validation layers
-					if (buildPlatform != 'android')
-					{
-						renderingBackends.push('angle_use_custom_libvulkan=true'); // Use ANGLE's Vulkan loader
-					}
-					else
-					{
-						renderingBackends.push('angle_use_custom_libvulkan=false'); // Use system Vulkan loader
-					}
+					renderingBackends.push('angle_use_custom_libvulkan=false'); // Use system Vulkan loader
 
 					if (buildPlatform == 'windows')
 					{
