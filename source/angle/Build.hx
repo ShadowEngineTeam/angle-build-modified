@@ -283,7 +283,14 @@ class Build
 					renderingBackends.push('angle_use_custom_libvulkan=false'); // Use system Vulkan loader
 
 					if (buildPlatform == 'linux')
+					{
+						renderingBackends.push('angle_use_x11=true'); // Enable X11 backend
+						renderingBackends.push('angle_use_wayland=true'); // Enable Wayland backend
 						renderingBackends.push('use_ozone=true'); // Enable Ozone backend for Linux
+						renderingBackends.push('ozone_auto_platforms=false');
+						renderingBackends.push('ozone_platform_x11=true');
+						renderingBackends.push('ozone_platform_wayland=true');
+					}
 
 					if (buildPlatform == 'windows')
 					{
