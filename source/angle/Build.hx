@@ -120,7 +120,7 @@ class Build
 					case 'linux':
 						FileUtil.copyFile('angle/${buildConfig.getExportPath()}/$lib.so', 'build/$buildPlatform/lib/${buildConfig.cpu}/$lib.so');
 					case 'android':
-						FileUtil.copyFile('angle/${buildConfig.getExportPath()}/${lib}_angle.so', 'build/$buildPlatform/lib/${buildConfig.cpu}/${lib}_angle.so');
+						FileUtil.copyFile('angle/${buildConfig.getExportPath()}/$lib.so', 'build/$buildPlatform/lib/${buildConfig.cpu}/$lib.so');
 					case 'macos':
 						if (!macosLibsToCombine.exists(lib))
 							macosLibsToCombine.set(lib, new Array<String>());
