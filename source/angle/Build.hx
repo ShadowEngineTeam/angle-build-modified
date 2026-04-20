@@ -240,6 +240,8 @@ class Build
 				case 'windows' | 'linux' | 'android':
 					final renderingBackends:Array<String> = [];
 
+					renderingBackends.push('angle_libs_suffix=""'); // No suffix for libs
+
 					/*if (buildPlatform != 'windows')
 					{*/
 						renderingBackends.push('angle_enable_gl=true'); // Enable OpenGL backend
@@ -279,6 +281,9 @@ class Build
 					renderingBackends.push('angle_enable_vulkan_api_dump_layer=false'); // Disable Vulkan API dump layer
 					renderingBackends.push('angle_enable_vulkan_validation_layers=false'); // Disable Vulkan validation layers
 					renderingBackends.push('angle_use_custom_libvulkan=false'); // Use system Vulkan loader
+
+					if (buildPlatform == 'linux')
+						renderingBackends.push('use_ozone=true'); // Enable Ozone backend for Linux
 
 					if (buildPlatform == 'windows')
 					{
@@ -354,6 +359,8 @@ class Build
 	                }
 				case 'macos' | 'ios':
 					final renderingBackends:Array<String> = [];
+
+					renderingBackends.push('angle_libs_suffix=""'); // No suffix for libs
 
 					renderingBackends.push('angle_enable_d3d9=false'); // Disable D3D9 backend
 					renderingBackends.push('angle_enable_d3d11=false'); // Disable D3D11 backend
