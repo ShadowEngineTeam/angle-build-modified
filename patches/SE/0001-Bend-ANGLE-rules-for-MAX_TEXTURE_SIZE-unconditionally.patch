@@ -1,6 +1,6 @@
-From ca144e341f339108b78b2754ee1e28c81b1fdcac Mon Sep 17 00:00:00 2001
+From 839e1838ca9418657f5baabbaf6d9e0d6830595d Mon Sep 17 00:00:00 2001
 From: Homura <egzozu.be.bas@gmail.com>
-Date: Sat, 16 May 2026 21:51:25 +0300
+Date: Thu, 28 May 2026 20:28:01 +0300
 Subject: [PATCH 1/5] bend ANGLE rules for `MAX_TEXTURE_SIZE` unconditionally.
 
 Currently, reaching `MAX_TEXTURE_SIZE` has the effect of a black box. The creation fails and the behavior diverges vastly across backends, Without having the ability to realistically probe what the GPU can do, applications end up losing that capability.
@@ -18,23 +18,23 @@ Instead of making guesses, we give the GPU permission to try to create the textu
  8 files changed, 37 insertions(+), 70 deletions(-)
 
 diff --git a/src/libANGLE/Context.cpp b/src/libANGLE/Context.cpp
-index 57f4a734ef..475aa66c30 100644
+index 0609e54e53..eea2eba68c 100644
 --- a/src/libANGLE/Context.cpp
 +++ b/src/libANGLE/Context.cpp
-@@ -4309,9 +4309,9 @@ void Context::initCaps()
- 
-     // Apply/Verify implementation limits
-     ANGLE_LIMIT_CAP(caps->maxDrawBuffers, IMPLEMENTATION_MAX_DRAW_BUFFERS);
+@@ -4308,9 +4308,9 @@ void Context::initCaps()
+     const GLint maxDrawBuffersAndColorAttachments = std::min<GLint>(
+         std::min(caps->maxDrawBuffers, caps->maxColorAttachments), IMPLEMENTATION_MAX_DRAW_BUFFERS);
+     ANGLE_LIMIT_CAP(caps->maxDrawBuffers, maxDrawBuffersAndColorAttachments);
 -    ANGLE_LIMIT_CAP(caps->maxFramebufferWidth, IMPLEMENTATION_MAX_FRAMEBUFFER_SIZE);
 -    ANGLE_LIMIT_CAP(caps->maxFramebufferHeight, IMPLEMENTATION_MAX_FRAMEBUFFER_SIZE);
 -    ANGLE_LIMIT_CAP(caps->maxRenderbufferSize, IMPLEMENTATION_MAX_RENDERBUFFER_SIZE);
 +    ANGLE_LIMIT_CAP(caps->maxFramebufferWidth, 16384);
 +    ANGLE_LIMIT_CAP(caps->maxFramebufferHeight, 16384);
 +    ANGLE_LIMIT_CAP(caps->maxRenderbufferSize, 16384);
-     ANGLE_LIMIT_CAP(caps->maxColorAttachments, IMPLEMENTATION_MAX_DRAW_BUFFERS);
+     ANGLE_LIMIT_CAP(caps->maxColorAttachments, maxDrawBuffersAndColorAttachments);
      ANGLE_LIMIT_CAP(caps->maxVertexAttributes, MAX_VERTEX_ATTRIBS);
      if (mDisplay->getFrontendFeatures().forceMinimumMaxVertexAttributes.enabled &&
-@@ -4340,18 +4340,18 @@ void Context::initCaps()
+@@ -4339,18 +4339,18 @@ void Context::initCaps()
  
      if (mWebGLContext && limitations.webGLTextureSizeLimit > 0)
      {
@@ -59,7 +59,7 @@ index 57f4a734ef..475aa66c30 100644
      ANGLE_LIMIT_CAP(caps->maxShaderUniformBlocks[ShaderType::Vertex],
                      IMPLEMENTATION_MAX_VERTEX_SHADER_UNIFORM_BUFFERS);
 diff --git a/src/libANGLE/renderer/d3d/d3d11/renderer11_utils.cpp b/src/libANGLE/renderer/d3d/d3d11/renderer11_utils.cpp
-index 4de7ba5c3d..b3424c9414 100644
+index 9665f7d923..fbf58fac29 100644
 --- a/src/libANGLE/renderer/d3d/d3d11/renderer11_utils.cpp
 +++ b/src/libANGLE/renderer/d3d/d3d11/renderer11_utils.cpp
 @@ -414,32 +414,6 @@ int GetMaximumSimultaneousRenderTargets(D3D_FEATURE_LEVEL featureLevel)
@@ -118,7 +118,7 @@ index 52e9cdad65..86c1ba8bb7 100644
      // D3D treats cube maps as a special case of 2D textures
      caps->maxCubeMapTextureSize = caps->max2DTextureSize;
 diff --git a/src/libANGLE/renderer/gl/renderergl_utils.cpp b/src/libANGLE/renderer/gl/renderergl_utils.cpp
-index 1eadd4b551..254e37c37e 100644
+index b8219a1080..530c691bae 100644
 --- a/src/libANGLE/renderer/gl/renderergl_utils.cpp
 +++ b/src/libANGLE/renderer/gl/renderergl_utils.cpp
 @@ -810,7 +810,7 @@ void GenerateCaps(const FunctionsGL *functions,
@@ -169,10 +169,10 @@ index 1eadd4b551..254e37c37e 100644
  
      // OpenGL 4.3 (and above) and OpenGL ES 3.2 can support all features and constants defined in
 diff --git a/src/libANGLE/renderer/metal/DisplayMtl.mm b/src/libANGLE/renderer/metal/DisplayMtl.mm
-index cdfd06b3f7..b82db25be4 100644
+index 066733a828..d8e2bcafba 100644
 --- a/src/libANGLE/renderer/metal/DisplayMtl.mm
 +++ b/src/libANGLE/renderer/metal/DisplayMtl.mm
-@@ -730,7 +730,7 @@ void DisplayMtl::ensureCapsInitialized() const
+@@ -732,7 +732,7 @@ void DisplayMtl::ensureCapsInitialized() const
      mNativeCaps.maxVaryingVectors         = 31 - 1;
      mNativeCaps.maxVertexOutputComponents = mNativeCaps.maxFragmentInputComponents = 124 - 4;
  #elif TARGET_OS_SIMULATOR
@@ -181,7 +181,7 @@ index cdfd06b3f7..b82db25be4 100644
      mNativeCaps.maxVaryingVectors         = 31 - 1;
      mNativeCaps.maxVertexOutputComponents = mNativeCaps.maxFragmentInputComponents = 124 - 4;
  #else
-@@ -742,7 +742,7 @@ void DisplayMtl::ensureCapsInitialized() const
+@@ -744,7 +744,7 @@ void DisplayMtl::ensureCapsInitialized() const
      }
      else
      {
@@ -304,5 +304,5 @@ index 30e5f270c6..855af53dc2 100644
      glCaps->maxColorTextureSamples = kMaxSampleCount;
      glCaps->maxDepthTextureSamples = kMaxSampleCount;
 -- 
-2.47.3
+2.54.0.windows.1
 
