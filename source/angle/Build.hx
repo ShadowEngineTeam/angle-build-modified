@@ -461,7 +461,10 @@ class Build
 	{
 		targetConfig.args.push('is_clang=true');
 		targetConfig.args.push('clang_use_chrome_plugins=false');
-        targetConfig.args.push('use_custom_libcxx=false');
+		if (buildPlatform == 'android')
+        	targetConfig.args.push('use_custom_libcxx=true');
+    	else
+        	targetConfig.args.push('use_custom_libcxx=false');
 
 		if (buildPlatform == 'ios')
 			targetConfig.args.push('ios_enable_code_signing=false');
