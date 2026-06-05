@@ -467,7 +467,10 @@ class Build
         	targetConfig.args.push('use_custom_libcxx=false');
 
 		if (buildPlatform == 'ios')
+		{
 			targetConfig.args.push('ios_enable_code_signing=false');
+			targetConfig.args.push('ios_deployment_target="14.0"');
+		}
 		else if (buildPlatform == 'android')
 			targetConfig.args.push('android_ndk_api_level=24');
 	}
