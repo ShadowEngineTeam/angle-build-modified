@@ -10,7 +10,7 @@ import angle.util.FileUtil;
 
 class Setup
 {
-	static final ANGLE_COMMIT:String = 'e357a3a4893e1b09c775406d4e34e66dec73853e';
+	static final ANGLE_COMMIT:String = 'dc32cd831434bf819b64b4f4aba80707cc57fd35';
 
 	public static function run():Void
 	{
