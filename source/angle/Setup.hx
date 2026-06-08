@@ -84,10 +84,17 @@ class Setup
 
 			// weird MSVC quirk
 			if (platform == 'windows')
+			{
 				FileUtil.goAndBackFromDir('third_party/SwiftShader/third_party/llvm-10.0', function():Void
 				{
 					Sys.command("sed -i '/SuccIterator(InstructionT \\*Inst)/i\\  SuccIterator() : Inst(nullptr), Idx(0) {}' llvm/include/llvm/IR/CFG.h");
 				});
+
+				FileUtil.goAndBackFromDir('third_party/SwiftShader/third_party/llvm-16.0', function():Void
+				{
+					Sys.command("sed -i '/SuccIterator(InstructionT \\*Inst)/i\\  SuccIterator() : Inst(nullptr), Idx(0) {}' llvm/include/llvm/IR/CFG.h");
+				});
+			}
 
 			FileUtil.applyGitPatchesFromDir('../../patches');
 			FileUtil.applyGitPatchesFromDir('../../patches/SE');
