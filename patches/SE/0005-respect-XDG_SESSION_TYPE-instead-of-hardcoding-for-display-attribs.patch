@@ -1,27 +1,26 @@
-From 1930d7cdc7392e00cf38e0c3c3457c1d43eace48 Mon Sep 17 00:00:00 2001
+From f29d04e07a5ed1c2e73afa8da121fd13e69a39b5 Mon Sep 17 00:00:00 2001
 From: Homura <egzozu.be.bas@gmail.com>
-Date: Thu, 28 May 2026 20:34:21 +0300
+Date: Mon, 8 Jun 2026 19:05:59 +0300
 Subject: [PATCH 5/5] respect `XDG_SESSION_TYPE` instead of hardcoding for display
  attribs.
 
 ---
- src/libANGLE/Display.cpp                      | 28 +++++++++---
+ src/libANGLE/Display.cpp                      | 33 ++++++++------
  src/libANGLE/renderer/vulkan/CLPlatformVk.cpp | 45 +++++++++++++------
  util/linux/LinuxWindow.cpp                    | 10 ++---
- 3 files changed, 56 insertions(+), 27 deletions(-)
+ 3 files changed, 53 insertions(+), 35 deletions(-)
 
 diff --git a/src/libANGLE/Display.cpp b/src/libANGLE/Display.cpp
-index 65f0f15ae3..86d36da9ec 100644
+index 7b03f9ac05..9257a41725 100644
 --- a/src/libANGLE/Display.cpp
 +++ b/src/libANGLE/Display.cpp
-@@ -377,19 +377,35 @@ EGLAttrib GetDeviceTypeFromEnvironment()
+@@ -377,27 +377,32 @@ EGLAttrib GetDeviceTypeFromEnvironment()
  
  EGLAttrib GetPlatformTypeFromEnvironment()
  {
 -#if defined(ANGLE_USE_OZONE)
 +#if defined(ANGLE_PLATFORM_LINUX)
 +    const char *session = getenv("XDG_SESSION_TYPE");
-+
 +    if (session)
 +    {
 +#if defined(ANGLE_USE_WAYLAND)
@@ -30,7 +29,6 @@ index 65f0f15ae3..86d36da9ec 100644
 +            return EGL_PLATFORM_WAYLAND_EXT;
 +        }
 +#endif
-+
 +#if defined(ANGLE_USE_X11)
 +        if (strcmp(session, "x11") == 0)
 +        {
@@ -38,9 +36,16 @@ index 65f0f15ae3..86d36da9ec 100644
 +        }
 +#endif
 +    }
-+
 +    // fallback if none found
      return 0;
+-#elif defined(ANGLE_USE_X11) && defined(ANGLE_USE_WAYLAND)
+-    // EGL 1.4 eglGetDisplay() carries no platform attribute, so consult
+-    // WAYLAND_DISPLAY to break the tie between the two backends.
+-    if (!angle::GetEnvironmentVar("WAYLAND_DISPLAY").empty())
+-    {
+-        return EGL_PLATFORM_WAYLAND_EXT;
+-    }
+-    return EGL_PLATFORM_X11_EXT;
 -#elif defined(ANGLE_USE_X11)
 -    return EGL_PLATFORM_X11_EXT;
 -#elif defined(ANGLE_USE_WAYLAND)
