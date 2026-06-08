@@ -93,6 +93,7 @@ class Setup
 				FileUtil.goAndBackFromDir('third_party/SwiftShader/third_party/llvm-16.0', function():Void
 				{
 					Sys.command("sed -i '/SuccIterator(InstructionT \\*Inst)/i\\  SuccIterator() : Inst(nullptr), Idx(0) {}' llvm/include/llvm/IR/CFG.h");
+					Sys.command("sed -i '/llvm\\/lib\\/MC\\/MCDisassembler\\/MCRelocationInfo.cpp/a\\    \"llvm/lib/MC/MCDisassembler/MCExternalSymbolizer.cpp\",\\n    \"llvm/lib/MC/MCDisassembler/MCSymbolizer.cpp\",' BUILD.gn");
 				});
 			}
 
