@@ -1,8 +1,8 @@
-From b9d0163148e6fa5ebe341f412d15bd3f21227d26 Mon Sep 17 00:00:00 2001
+From 01c55f1a137fdb009813203c5019dc1e4bee5a41 Mon Sep 17 00:00:00 2001
 From: Homura <egzozu.be.bas@gmail.com>
-Date: Sat, 16 May 2026 21:58:29 +0300
-Subject: [PATCH 3/5] Drop verbose debug details from `GL_RENDERER` and
- `GL_VERSION`.
+Date: Thu, 28 May 2026 20:30:00 +0300
+Subject: [PATCH 3/5] Drop verbose debug details from GL_RENDERER and
+ GL_VERSION
 
 ---
  src/common/angle_version_info.cpp             |  2 +-
@@ -11,10 +11,10 @@ Subject: [PATCH 3/5] Drop verbose debug details from `GL_RENDERER` and
  .../renderer/d3d/d3d11/Renderer11.cpp         |  9 --------
  src/libANGLE/renderer/d3d/d3d9/Renderer9.cpp  | 13 ------------
  src/libANGLE/renderer/gl/DisplayGL.cpp        | 10 +++++----
- src/libANGLE/renderer/metal/DisplayMtl.mm     |  5 +++--
+ src/libANGLE/renderer/metal/DisplayMtl.mm     |  3 +--
  src/libANGLE/renderer/vulkan/CLPlatformVk.cpp |  3 +--
  src/libANGLE/renderer/vulkan/vk_renderer.cpp  | 21 -------------------
- 9 files changed, 14 insertions(+), 67 deletions(-)
+ 9 files changed, 12 insertions(+), 67 deletions(-)
 
 diff --git a/src/common/angle_version_info.cpp b/src/common/angle_version_info.cpp
 index 9f255e7e96..f87a7d53d6 100644
@@ -30,7 +30,7 @@ index 9f255e7e96..f87a7d53d6 100644
  
  const char *GetANGLECommitHash()
 diff --git a/src/libANGLE/Context.cpp b/src/libANGLE/Context.cpp
-index 475aa66c30..35c854ff9d 100644
+index 0609e54e53..17bf5623db 100644
 --- a/src/libANGLE/Context.cpp
 +++ b/src/libANGLE/Context.cpp
 @@ -3594,23 +3594,13 @@ void Context::initRendererString()
@@ -159,25 +159,22 @@ index e8aa88eb37..e3302283b7 100644
  }
  
 diff --git a/src/libANGLE/renderer/metal/DisplayMtl.mm b/src/libANGLE/renderer/metal/DisplayMtl.mm
-index b82db25be4..dfca7fbbee 100644
+index da5beda935..c2985bbbe8 100644
 --- a/src/libANGLE/renderer/metal/DisplayMtl.mm
 +++ b/src/libANGLE/renderer/metal/DisplayMtl.mm
-@@ -192,12 +192,13 @@ std::string DisplayMtl::getRendererDescription()
+@@ -192,11 +192,10 @@ std::string DisplayMtl::getRendererDescription()
  {
      ANGLE_MTL_OBJC_SCOPE
      {
 -        std::string desc = "ANGLE Metal Renderer";
-+        std::string desc = "";
++        std::string desc;
  
          if (mMetalDevice)
          {
 -            desc += ": ";
-+            desc += "";
              desc += mMetalDevice.get().name.UTF8String;
-+            desc += "";
          }
  
-         return desc;
 diff --git a/src/libANGLE/renderer/vulkan/CLPlatformVk.cpp b/src/libANGLE/renderer/vulkan/CLPlatformVk.cpp
 index 8a4d164614..83a6bc3001 100644
 --- a/src/libANGLE/renderer/vulkan/CLPlatformVk.cpp
@@ -193,7 +190,7 @@ index 8a4d164614..83a6bc3001 100644
  }
  
 diff --git a/src/libANGLE/renderer/vulkan/vk_renderer.cpp b/src/libANGLE/renderer/vulkan/vk_renderer.cpp
-index ddf7037de2..d1fc66c287 100644
+index 5067f3235f..f53bbd3501 100644
 --- a/src/libANGLE/renderer/vulkan/vk_renderer.cpp
 +++ b/src/libANGLE/renderer/vulkan/vk_renderer.cpp
 @@ -4971,28 +4971,7 @@ std::string Renderer::getRendererDescription() const

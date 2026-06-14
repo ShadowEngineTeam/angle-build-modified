@@ -1,4 +1,4 @@
-From 839e1838ca9418657f5baabbaf6d9e0d6830595d Mon Sep 17 00:00:00 2001
+From 6f7686a70d5f0d1ccfe2fcf2512046cf4cf9bac8 Mon Sep 17 00:00:00 2001
 From: Homura <egzozu.be.bas@gmail.com>
 Date: Thu, 28 May 2026 20:28:01 +0300
 Subject: [PATCH 1/5] bend ANGLE rules for `MAX_TEXTURE_SIZE` unconditionally.
@@ -7,18 +7,18 @@ Currently, reaching `MAX_TEXTURE_SIZE` has the effect of a black box. The creati
 
 Instead of making guesses, we give the GPU permission to try to create the texture and rely on backend validation and driver behavior that may either accept or reject the operation. It is not a good solution, but this method is a more transparent, consistent, and quite naturally aligned with hardware limits of the present, day than overly conservative clamping.
 ---
- src/libANGLE/Context.cpp                      | 16 +++++------
- .../renderer/d3d/d3d11/renderer11_utils.cpp   | 28 +------------------
- .../renderer/d3d/d3d9/renderer9_utils.cpp     |  2 +-
- src/libANGLE/renderer/gl/renderergl_utils.cpp | 14 +++++-----
- src/libANGLE/renderer/metal/DisplayMtl.mm     |  4 +--
- src/libANGLE/renderer/vulkan/CLDeviceVk.cpp   |  4 +--
- .../renderer/vulkan/vk_caps_utils.cpp         | 25 ++++++-----------
- src/libANGLE/renderer/wgpu/wgpu_utils.cpp     | 14 +++++-----
- 8 files changed, 37 insertions(+), 70 deletions(-)
+ src/libANGLE/Context.cpp                      | 18 ++--
+ .../renderer/d3d/d3d11/renderer11_utils.cpp   | 83 +------------------
+ .../renderer/d3d/d3d9/renderer9_utils.cpp     |  7 +-
+ src/libANGLE/renderer/gl/renderergl_utils.cpp | 18 ++--
+ src/libANGLE/renderer/metal/DisplayMtl.mm     |  6 +-
+ src/libANGLE/renderer/vulkan/CLDeviceVk.cpp   |  4 +-
+ .../renderer/vulkan/vk_caps_utils.cpp         | 29 +++----
+ src/libANGLE/renderer/wgpu/wgpu_utils.cpp     | 16 ++--
+ 8 files changed, 48 insertions(+), 133 deletions(-)
 
 diff --git a/src/libANGLE/Context.cpp b/src/libANGLE/Context.cpp
-index 0609e54e53..eea2eba68c 100644
+index 0609e54e53..283561f3d6 100644
 --- a/src/libANGLE/Context.cpp
 +++ b/src/libANGLE/Context.cpp
 @@ -4308,9 +4308,9 @@ void Context::initCaps()
@@ -48,8 +48,9 @@ index 0609e54e53..eea2eba68c 100644
      }
  
 -    ANGLE_LIMIT_CAP(caps->max2DTextureSize, IMPLEMENTATION_MAX_2D_TEXTURE_SIZE);
+-    ANGLE_LIMIT_CAP(caps->maxCubeMapTextureSize, IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE);
 +    ANGLE_LIMIT_CAP(caps->max2DTextureSize, 16384);
-     ANGLE_LIMIT_CAP(caps->maxCubeMapTextureSize, IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE);
++    ANGLE_LIMIT_CAP(caps->maxCubeMapTextureSize, 16384);
      ANGLE_LIMIT_CAP(caps->max3DTextureSize, IMPLEMENTATION_MAX_3D_TEXTURE_SIZE);
 -    ANGLE_LIMIT_CAP(caps->maxArrayTextureLayers, IMPLEMENTATION_MAX_2D_ARRAY_TEXTURE_LAYERS);
 -    ANGLE_LIMIT_CAP(caps->maxRectangleTextureSize, IMPLEMENTATION_MAX_2D_TEXTURE_SIZE);
@@ -59,10 +60,10 @@ index 0609e54e53..eea2eba68c 100644
      ANGLE_LIMIT_CAP(caps->maxShaderUniformBlocks[ShaderType::Vertex],
                      IMPLEMENTATION_MAX_VERTEX_SHADER_UNIFORM_BUFFERS);
 diff --git a/src/libANGLE/renderer/d3d/d3d11/renderer11_utils.cpp b/src/libANGLE/renderer/d3d/d3d11/renderer11_utils.cpp
-index 9665f7d923..fbf58fac29 100644
+index 9665f7d923..db632a3908 100644
 --- a/src/libANGLE/renderer/d3d/d3d11/renderer11_utils.cpp
 +++ b/src/libANGLE/renderer/d3d/d3d11/renderer11_utils.cpp
-@@ -414,32 +414,6 @@ int GetMaximumSimultaneousRenderTargets(D3D_FEATURE_LEVEL featureLevel)
+@@ -414,58 +414,6 @@ int GetMaximumSimultaneousRenderTargets(D3D_FEATURE_LEVEL featureLevel)
      }
  }
  
@@ -92,24 +93,93 @@ index 9665f7d923..fbf58fac29 100644
 -    }
 -}
 -
- int GetMaximumCubeMapTextureSize(D3D_FEATURE_LEVEL featureLevel)
+-int GetMaximumCubeMapTextureSize(D3D_FEATURE_LEVEL featureLevel)
+-{
+-    switch (featureLevel)
+-    {
+-        case D3D_FEATURE_LEVEL_12_1:
+-        case D3D_FEATURE_LEVEL_12_0:
+-        case D3D_FEATURE_LEVEL_11_1:
+-        case D3D_FEATURE_LEVEL_11_0:
+-            return D3D11_REQ_TEXTURECUBE_DIMENSION;
+-
+-        case D3D_FEATURE_LEVEL_10_1:
+-        case D3D_FEATURE_LEVEL_10_0:
+-            return D3D10_REQ_TEXTURECUBE_DIMENSION;
+-
+-        case D3D_FEATURE_LEVEL_9_3:
+-            return D3D_FL9_3_REQ_TEXTURECUBE_DIMENSION;
+-        case D3D_FEATURE_LEVEL_9_2:
+-        case D3D_FEATURE_LEVEL_9_1:
+-            return D3D_FL9_1_REQ_TEXTURECUBE_DIMENSION;
+-
+-        default:
+-            UNREACHABLE();
+-            return 0;
+-    }
+-}
+-
+ int GetMaximum2DTextureArraySize(D3D_FEATURE_LEVEL featureLevel)
  {
      switch (featureLevel)
-@@ -1388,7 +1362,7 @@ void GenerateCaps(ID3D11Device *device,
+@@ -491,31 +439,6 @@ int GetMaximum2DTextureArraySize(D3D_FEATURE_LEVEL featureLevel)
+     }
+ }
+ 
+-int GetMaximum3DTextureSize(D3D_FEATURE_LEVEL featureLevel)
+-{
+-    switch (featureLevel)
+-    {
+-        case D3D_FEATURE_LEVEL_12_1:
+-        case D3D_FEATURE_LEVEL_12_0:
+-        case D3D_FEATURE_LEVEL_11_1:
+-        case D3D_FEATURE_LEVEL_11_0:
+-            return D3D11_REQ_TEXTURE3D_U_V_OR_W_DIMENSION;
+-
+-        case D3D_FEATURE_LEVEL_10_1:
+-        case D3D_FEATURE_LEVEL_10_0:
+-            return D3D10_REQ_TEXTURE3D_U_V_OR_W_DIMENSION;
+-
+-        case D3D_FEATURE_LEVEL_9_3:
+-        case D3D_FEATURE_LEVEL_9_2:
+-        case D3D_FEATURE_LEVEL_9_1:
+-            return D3D_FL9_1_REQ_TEXTURE3D_U_V_OR_W_DIMENSION;
+-
+-        default:
+-            UNREACHABLE();
+-            return 0;
+-    }
+-}
+-
+ int GetMaximumViewportSize(D3D_FEATURE_LEVEL featureLevel)
+ {
+     switch (featureLevel)
+@@ -1387,9 +1310,9 @@ void GenerateCaps(ID3D11Device *device,
+     // GL core feature limits
      // Reserve MAX_UINT for D3D11's primitive restart.
      caps->maxElementIndex  = static_cast<GLint64>(std::numeric_limits<unsigned int>::max() - 1);
-     caps->max3DTextureSize = GetMaximum3DTextureSize(featureLevel);
+-    caps->max3DTextureSize = GetMaximum3DTextureSize(featureLevel);
 -    caps->max2DTextureSize = GetMaximum2DTextureSize(featureLevel);
+-    caps->maxCubeMapTextureSize = GetMaximumCubeMapTextureSize(featureLevel);
++    caps->max3DTextureSize = 4096;
 +    caps->max2DTextureSize = 16384;
-     caps->maxCubeMapTextureSize = GetMaximumCubeMapTextureSize(featureLevel);
++    caps->maxCubeMapTextureSize = 16384;
      caps->maxArrayTextureLayers = GetMaximum2DTextureArraySize(featureLevel);
  
+     // Unimplemented, set to minimum required
 diff --git a/src/libANGLE/renderer/d3d/d3d9/renderer9_utils.cpp b/src/libANGLE/renderer/d3d/d3d9/renderer9_utils.cpp
-index 52e9cdad65..86c1ba8bb7 100644
+index 52e9cdad65..62e689c3c6 100644
 --- a/src/libANGLE/renderer/d3d/d3d9/renderer9_utils.cpp
 +++ b/src/libANGLE/renderer/d3d/d3d9/renderer9_utils.cpp
-@@ -534,7 +534,7 @@ void GenerateCaps(IDirect3D9 *d3d9,
-     caps->max3DTextureSize = 1;
+@@ -530,11 +530,12 @@ void GenerateCaps(IDirect3D9 *d3d9,
+     // GL core feature limits
+     caps->maxElementIndex = static_cast<GLint64>(std::numeric_limits<unsigned int>::max());
+ 
+-    // 3D textures are unimplemented in D3D9
+-    caps->max3DTextureSize = 1;
++    // 3D textures are unimplemented in D3D9 (ES2-only, no volume-texture storage). Forced to 4096
++    // for cross-backend consistency; stays inert behind the ES2 version gate, so no 3D path uses it.
++    caps->max3DTextureSize = 4096;
  
      // Only one limit in GL, use the minimum dimension
 -    caps->max2DTextureSize = std::min(deviceCaps.MaxTextureWidth, deviceCaps.MaxTextureHeight);
@@ -118,19 +188,32 @@ index 52e9cdad65..86c1ba8bb7 100644
      // D3D treats cube maps as a special case of 2D textures
      caps->maxCubeMapTextureSize = caps->max2DTextureSize;
 diff --git a/src/libANGLE/renderer/gl/renderergl_utils.cpp b/src/libANGLE/renderer/gl/renderergl_utils.cpp
-index b8219a1080..530c691bae 100644
+index b8219a1080..7c94e2dbec 100644
 --- a/src/libANGLE/renderer/gl/renderergl_utils.cpp
 +++ b/src/libANGLE/renderer/gl/renderergl_utils.cpp
-@@ -810,7 +810,7 @@ void GenerateCaps(const FunctionsGL *functions,
+@@ -801,8 +801,7 @@ void GenerateCaps(const FunctionsGL *functions,
+     if (functions->isAtLeastGL(gl::Version(1, 2)) || functions->isAtLeastGLES(gl::Version(3, 0)) ||
+         functions->hasGLESExtension("GL_OES_texture_3D"))
+     {
+-        caps->max3DTextureSize = std::min(
+-            {QuerySingleGLInt(functions, GL_MAX_3D_TEXTURE_SIZE), max3dArrayTextureSizeLimit});
++        caps->max3DTextureSize = 4096;
+     }
+     else
+     {
+@@ -810,9 +809,8 @@ void GenerateCaps(const FunctionsGL *functions,
          LimitVersion(maxSupportedESVersion, gl::Version(2, 0));
      }
  
 -    caps->max2DTextureSize = QuerySingleGLInt(functions, GL_MAX_TEXTURE_SIZE);  // GL 1.0 / ES 2.0
+-    caps->maxCubeMapTextureSize =
+-        QuerySingleGLInt(functions, GL_MAX_CUBE_MAP_TEXTURE_SIZE);  // GL 1.3 / ES 2.0
 +    caps->max2DTextureSize = 16384;  // GL 1.0 / ES 2.0
-     caps->maxCubeMapTextureSize =
-         QuerySingleGLInt(functions, GL_MAX_CUBE_MAP_TEXTURE_SIZE);  // GL 1.3 / ES 2.0
++    caps->maxCubeMapTextureSize = 16384;  // GL 1.3 / ES 2.0
  
-@@ -842,12 +842,12 @@ void GenerateCaps(const FunctionsGL *functions,
+     if (functions->isAtLeastGL(gl::Version(3, 0)) ||
+         functions->hasGLExtension("GL_EXT_texture_array") ||
+@@ -842,12 +840,12 @@ void GenerateCaps(const FunctionsGL *functions,
          functions->hasGLExtension("GL_EXT_framebuffer_object") ||
          functions->isAtLeastGLES(gl::Version(3, 0)))
      {
@@ -145,7 +228,7 @@ index b8219a1080..530c691bae 100644
          caps->maxColorAttachments = 1;
      }
      else
-@@ -1229,10 +1229,10 @@ void GenerateCaps(const FunctionsGL *functions,
+@@ -1229,8 +1227,8 @@ void GenerateCaps(const FunctionsGL *functions,
      if (functions->isAtLeastGL(gl::Version(4, 3)) || functions->isAtLeastGLES(gl::Version(3, 1)) ||
          functions->hasGLExtension("GL_ARB_framebuffer_no_attachments"))
      {
@@ -154,12 +237,9 @@ index b8219a1080..530c691bae 100644
 +        caps->maxFramebufferWidth  = 16384;
 +        caps->maxFramebufferHeight = 16384;
          caps->maxFramebufferSamples =
--            std::min(QuerySingleGLInt(functions, GL_MAX_FRAMEBUFFER_SAMPLES), sampleCountLimit);
-+            16384;
+             std::min(QuerySingleGLInt(functions, GL_MAX_FRAMEBUFFER_SAMPLES), sampleCountLimit);
      }
-     else
-     {
-@@ -1878,7 +1878,7 @@ void GenerateCaps(const FunctionsGL *functions,
+@@ -1878,7 +1876,7 @@ void GenerateCaps(const FunctionsGL *functions,
      {
          extensions->textureRectangleANGLE = true;
          caps->maxRectangleTextureSize =
@@ -169,10 +249,18 @@ index b8219a1080..530c691bae 100644
  
      // OpenGL 4.3 (and above) and OpenGL ES 3.2 can support all features and constants defined in
 diff --git a/src/libANGLE/renderer/metal/DisplayMtl.mm b/src/libANGLE/renderer/metal/DisplayMtl.mm
-index 066733a828..d8e2bcafba 100644
+index da5beda935..4c919a7adf 100644
 --- a/src/libANGLE/renderer/metal/DisplayMtl.mm
 +++ b/src/libANGLE/renderer/metal/DisplayMtl.mm
-@@ -732,7 +732,7 @@ void DisplayMtl::ensureCapsInitialized() const
+@@ -726,14 +726,14 @@ void DisplayMtl::ensureCapsInitialized() const
+ 
+     // https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
+     mNativeCaps.maxElementIndex  = std::numeric_limits<GLuint>::max() - 1;
+-    mNativeCaps.max3DTextureSize = 2048;
++    mNativeCaps.max3DTextureSize = 4096;
+ #if TARGET_OS_OSX || TARGET_OS_MACCATALYST
+     mNativeCaps.max2DTextureSize = 16384;
+     // On macOS exclude [[position]] from maxVaryingVectors.
      mNativeCaps.maxVaryingVectors         = 31 - 1;
      mNativeCaps.maxVertexOutputComponents = mNativeCaps.maxFragmentInputComponents = 124 - 4;
  #elif TARGET_OS_SIMULATOR
@@ -181,7 +269,7 @@ index 066733a828..d8e2bcafba 100644
      mNativeCaps.maxVaryingVectors         = 31 - 1;
      mNativeCaps.maxVertexOutputComponents = mNativeCaps.maxFragmentInputComponents = 124 - 4;
  #else
-@@ -744,7 +744,7 @@ void DisplayMtl::ensureCapsInitialized() const
+@@ -745,7 +745,7 @@ void DisplayMtl::ensureCapsInitialized() const
      }
      else
      {
@@ -206,19 +294,22 @@ index 7ddca2534a..4e9352d7f7 100644
      info.image3D_MaxHeight = properties.limits.maxImageDimension3D;
      info.image3D_MaxDepth  = properties.limits.maxImageDimension3D;
 diff --git a/src/libANGLE/renderer/vulkan/vk_caps_utils.cpp b/src/libANGLE/renderer/vulkan/vk_caps_utils.cpp
-index f5de86123d..ef623ca3ad 100644
+index f5de86123d..368443cfc5 100644
 --- a/src/libANGLE/renderer/vulkan/vk_caps_utils.cpp
 +++ b/src/libANGLE/renderer/vulkan/vk_caps_utils.cpp
-@@ -650,14 +650,12 @@ void Renderer::ensureCapsInitialized() const
+@@ -649,15 +649,13 @@ void Renderer::ensureCapsInitialized() const
+     // avoiding integer limits and overflows in math.
      mNativeCaps.maxElementIndex = (1 << 30) - 1;
  
-     mNativeCaps.max3DTextureSize = rx::LimitToInt(limitsVk.maxImageDimension3D);
+-    mNativeCaps.max3DTextureSize = rx::LimitToInt(limitsVk.maxImageDimension3D);
 -    mNativeCaps.max2DTextureSize =
 -        std::min(limitsVk.maxFramebufferWidth, limitsVk.maxImageDimension2D);
++    mNativeCaps.max3DTextureSize = 4096;
 +    mNativeCaps.max2DTextureSize = 16384;
      mNativeCaps.maxArrayTextureLayers = rx::LimitToInt(limitsVk.maxImageArrayLayers);
      mNativeCaps.maxLODBias            = limitsVk.maxSamplerLodBias;
-     mNativeCaps.maxCubeMapTextureSize = rx::LimitToInt(limitsVk.maxImageDimensionCube);
+-    mNativeCaps.maxCubeMapTextureSize = rx::LimitToInt(limitsVk.maxImageDimensionCube);
++    mNativeCaps.maxCubeMapTextureSize = 16384;
      mNativeCaps.maxRenderbufferSize =
 -        std::min({limitsVk.maxImageDimension2D, limitsVk.maxFramebufferWidth,
 -                  limitsVk.maxFramebufferHeight});
@@ -268,14 +359,16 @@ index f5de86123d..ef623ca3ad 100644
      config.maxSwapInterval    = 1;
      config.minSwapInterval    = 0;
 diff --git a/src/libANGLE/renderer/wgpu/wgpu_utils.cpp b/src/libANGLE/renderer/wgpu/wgpu_utils.cpp
-index 30e5f270c6..855af53dc2 100644
+index 30e5f270c6..d419ecf7e3 100644
 --- a/src/libANGLE/renderer/wgpu/wgpu_utils.cpp
 +++ b/src/libANGLE/renderer/wgpu/wgpu_utils.cpp
-@@ -272,11 +272,11 @@ void GenerateCaps(const WGPULimits &limitsWgpu,
+@@ -271,12 +271,12 @@ void GenerateCaps(const WGPULimits &limitsWgpu,
+ 
      // OpenGL ES caps
      glCaps->maxElementIndex       = std::numeric_limits<GLuint>::max() - 1;
-     glCaps->max3DTextureSize      = rx::LimitToInt(limitsWgpu.maxTextureDimension3D);
+-    glCaps->max3DTextureSize      = rx::LimitToInt(limitsWgpu.maxTextureDimension3D);
 -    glCaps->max2DTextureSize      = rx::LimitToInt(limitsWgpu.maxTextureDimension2D);
++    glCaps->max3DTextureSize      = 4096;
 +    glCaps->max2DTextureSize      = 16384;
      glCaps->maxArrayTextureLayers = rx::LimitToInt(limitsWgpu.maxTextureArrayLayers);
      glCaps->maxLODBias            = 0.0f;
@@ -304,5 +397,5 @@ index 30e5f270c6..855af53dc2 100644
      glCaps->maxColorTextureSamples = kMaxSampleCount;
      glCaps->maxDepthTextureSamples = kMaxSampleCount;
 -- 
-2.54.0.windows.1
+2.47.3
 
