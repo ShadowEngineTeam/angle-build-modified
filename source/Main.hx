@@ -9,6 +9,6 @@ class Main
 	{
 		Setup.run();
 
-		//Build.run();
+		Build.run();
 	}
 }
