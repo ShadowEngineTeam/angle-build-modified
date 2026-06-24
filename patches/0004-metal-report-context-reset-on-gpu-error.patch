@@ -1,6 +1,6 @@
-From ff4f6aab6f98f87bc03dc113059bddaea6fc33a6 Mon Sep 17 00:00:00 2001
-From: Homura <egzozu.be1.bas@gmail.com>
-Date: Sun, 14 Jun 2026 13:53:43 +0300
+From 3a14e0fd6f5852b722be9c6b10c09a326a9eea4d Mon Sep 17 00:00:00 2001
+From: Homura <egzozu.be.bas@gmail.com>
+Date: Wed, 24 Jun 2026 15:06:40 +0300
 Subject: [PATCH] Metal: report context reset on device-loss command buffer
  errors
 
@@ -8,16 +8,16 @@ ContextMtl::getResetStatus() always returned NoError, so when a command buffer c
 
 Latch those errors on command buffer completion and report them through getResetStatus() as a context reset, so a robustness-aware client can detect the loss and rebuild.
 ---
- src/libANGLE/renderer/metal/ContextMtl.mm         |  7 +++++++
- src/libANGLE/renderer/metal/mtl_command_buffer.h  |  5 +++++
+ src/libANGLE/renderer/metal/ContextMtl.mm         |  8 ++++++++
+ src/libANGLE/renderer/metal/mtl_command_buffer.h  |  9 +++++++++
  src/libANGLE/renderer/metal/mtl_command_buffer.mm | 15 +++++++++++++++
- 3 files changed, 27 insertions(+)
+ 3 files changed, 32 insertions(+)
 
 diff --git a/src/libANGLE/renderer/metal/ContextMtl.mm b/src/libANGLE/renderer/metal/ContextMtl.mm
-index 60c7948467..acabb3a2fc 100644
+index 60c7948467..27d27966f3 100644
 --- a/src/libANGLE/renderer/metal/ContextMtl.mm
 +++ b/src/libANGLE/renderer/metal/ContextMtl.mm
-@@ -1065,6 +1065,13 @@ angle::Result ContextMtl::multiDrawElementsInstancedBaseVertexBaseInstance(
+@@ -1065,6 +1065,14 @@ angle::Result ContextMtl::multiDrawElementsInstancedBaseVertexBaseInstance(
  // Device loss
  gl::GraphicsResetStatus ContextMtl::getResetStatus()
  {
@@ -26,27 +26,32 @@ index 60c7948467..acabb3a2fc 100644
 +    // reset so a robustness-aware client can rebuild instead of rendering with corrupt state.
 +    if (mCmdBuffer.cmdQueue().isDeviceLost())
 +    {
++        mCmdBuffer.cmdQueue().clearDeviceLost();
 +        return gl::GraphicsResetStatus::UnknownContextReset;
 +    }
      return gl::GraphicsResetStatus::NoError;
  }
  
 diff --git a/src/libANGLE/renderer/metal/mtl_command_buffer.h b/src/libANGLE/renderer/metal/mtl_command_buffer.h
-index 443f2e4cca..4eaa074270 100644
+index 443f2e4cca..89975d33ff 100644
 --- a/src/libANGLE/renderer/metal/mtl_command_buffer.h
 +++ b/src/libANGLE/renderer/metal/mtl_command_buffer.h
-@@ -126,6 +126,10 @@ class CommandQueue final : public WrappedObject<id<MTLCommandQueue>>, angle::Non
+@@ -126,6 +126,14 @@ class CommandQueue final : public WrappedObject<id<MTLCommandQueue>>, angle::Non
      double getTimeElapsedEntryInSeconds(uint64_t id);
      MTLCommandBufferError popCmdBufferError() { return mCmdBufferError.pop(); }
  
 +    // Sticky flag: set when a command buffer completes with a device-loss-class error
 +    // (GPU timeout, page fault, access revoked). Used to surface a context reset.
 +    bool isDeviceLost() const { return mDeviceLost.load(std::memory_order_acquire); }
++    // Clear the flag after the reset has been reported to the client. Matches
++    // GL_KHR_robustness semantics: status is latched until queried, then resets
++    // to NoError so subsequent independent loss events are detectable.
++    void clearDeviceLost() { mDeviceLost.store(false, std::memory_order_release); }
 +
    private:
      using ParentClass = WrappedObject<id<MTLCommandQueue>>;
  
-@@ -174,6 +178,7 @@ class CommandQueue final : public WrappedObject<id<MTLCommandQueue>>, angle::Non
+@@ -174,6 +182,7 @@ class CommandQueue final : public WrappedObject<id<MTLCommandQueue>>, angle::Non
      mutable std::condition_variable mCompletedBufferSerialCv;
  
      AtomicCommandBufferError mCmdBufferError;
@@ -81,5 +86,5 @@ index 0decccbae0..4904dbc76e 100644
  
      if (timeElapsedEntry != 0)
 -- 
-2.47.3
+2.54.0.windows.1
 
